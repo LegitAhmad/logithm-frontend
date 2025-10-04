@@ -1,0 +1,42 @@
+@use '../../../styles.sass' as *
+
+$nav-elements-width: calc(2 * 140px + 12px)
+header
+  display: flex
+  justify-content: space-between
+  background-color: $accent
+  align-items: center
+  border-radius: 20px
+  height: 85px
+  padding: 20px
+
+#primary-header
+  font-size: 1.8rem
+  width: $nav-elements-width
+
+#primary-nav
+  display: flex
+  gap: 3rem
+  font-size: 16px
+
+#cta-div
+  display: flex
+  gap: 12px
+  width: $nav-elements-width
+
+.btn
+  height: 50px
+  width: 140px
+  color: white
+  background-color: $primary
+  border-radius: 12px
+  font-size: 1rem
+  font-weight: bold
+  border: none
+
+.btn-secondary
+  background: transparent
+  border: 2px solid $primary
+
+
+
