@@ -1,3 +1,28 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'tailwindcss';
 
-@import "tailwindcss";
+@theme {
+  /* Branding Colors from your Figma */
+  --color-bg1: #171a1b;
+  --color-bg2: #242729;
+  --color-card: #1e1e1e;
+  --color-primary: #ebd5ab;
+  --color-accent: #facc15; /* A slightly brighter yellow for hovers */
+
+  /* Typography */
+  --font-sans: 'Inter', ui-sans-serif, system-ui;
+
+  /* Custom Spacing or Radius if you want to match Figma exactly */
+  --radius-xl: 1.5rem;
+}
+
+/* Global Base Styles */
+@layer base {
+  body {
+    @apply bg-bg1 text-white font-sans antialiased;
+  }
+
+  /* Smooth scroll for those "Learn More" anchors */
+  html {
+    scroll-behavior: smooth;
+  }
+}
