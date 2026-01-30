@@ -1,0 +1,56 @@
+<div class="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-bg1 to-bg2">
+  <div
+    class="w-full max-w-md bg-card border border-white/5 rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden group"
+  >
+    <div
+      class="absolute -top-24 -right-24 w-48 h-48 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-700"
+    ></div>
+
+    <div class="flex flex-col items-center mb-8">
+      <div
+        class="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mb-4 cursor-pointer"
+        routerLink="/"
+      >
+        <div class="w-6 h-6 bg-bg1 rounded-sm rotate-45"></div>
+      </div>
+      <h2 class="text-3xl font-bold">Welcome Back</h2>
+      <p class="text-gray-400 mt-2">Log in to continue your logic journey</p>
+    </div>
+
+    <form class="space-y-6">
+      <div class="space-y-2">
+        <label class="text-sm font-medium text-gray-300 ml-1">Email Address</label>
+        <input
+          type="email"
+          placeholder="anas@logithm.com"
+          class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
+        />
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex justify-between items-center px-1">
+          <label class="text-sm font-medium text-gray-300">Password</label>
+          <a href="#" class="text-xs text-primary hover:underline">Forgot?</a>
+        </div>
+        <input
+          type="password"
+          placeholder="••••••••"
+          class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all"
+        />
+      </div>
+
+      <button
+        class="w-full bg-primary text-bg1 font-bold py-3.5 rounded-xl hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary/10"
+      >
+        Login
+      </button>
+    </form>
+
+    <p class="text-center mt-8 text-gray-400">
+      Don't have an account?
+      <a routerLink="/signup" class="text-primary font-semibold hover:underline cursor-pointer"
+        >Sign up</a
+      >
+    </p>
+  </div>
+</div>
