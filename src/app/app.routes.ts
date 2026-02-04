@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { Home } from './pages/home/home';
 import { Login } from './pages/auth/login/login';
 import { Signup } from './pages/auth/signup/signup';
+import { Editor } from './pages/editor/editor';
 
 export const routes: Routes = [
   {
@@ -17,5 +18,10 @@ export const routes: Routes = [
     path: 'signup',
     title: 'Logithm | Join Now',
     component: Signup,
+  },
+  {
+    path: 'course/question',
+    title: 'Course | Question',
+    component: Editor,
   },
 ];
