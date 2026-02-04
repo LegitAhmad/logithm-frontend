@@ -19,10 +19,10 @@ export class Testimonials {
       image: '/anas.webp',
     },
     {
-      name: 'Jane Doe',
+      name: 'Samyam Wahla',
       role: 'Teacher',
       text: 'Automating test cases has saved me hours of manual grading every week.',
-      image: '/jane.webp',
+      image: '/t1.webp',
     },
   ];
 

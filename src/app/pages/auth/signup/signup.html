@@ -1,48 +1,35 @@
-<div
-  class="min-h-screen flex items-center justify-center p-6 bg-gradient-to-tr from-bg1 via-bg1 to-bg3/20"
->
-  <div
-    class="w-full max-w-lg bg-card border border-white/5 rounded-3xl p-8 md:p-12 shadow-2xl relative"
-  >
-    <h2 class="text-3xl font-bold mb-2">Create Account</h2>
+<div class="min-h-screen flex items-center justify-center p-6 bg-gradient-to-tr from-bg1 via-bg1 to-bg3/20">
+  <div class="w-full max-w-lg bg-card border border-white/5 rounded-3xl p-8 md:p-12 shadow-2xl relative">
+    <h2 class="text-primary opacity-90 text-3xl font-bold mb-2">Create Account</h2>
     <p class="text-gray-400 mb-8">Join the Logithm community today.</p>
 
     <form class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="space-y-2 md:col-span-1">
         <label class="text-sm text-gray-300 ml-1">First Name</label>
-        <input
-          type="text"
-          class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-3 focus:border-primary/50 outline-none transition"
-        />
+        <input type="text"
+          class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 hover:border-primary/50 hover:ring-1 hover:ring-primary/50 transition-all" />
       </div>
       <div class="space-y-2 md:col-span-1">
         <label class="text-sm text-gray-300 ml-1">Last Name</label>
-        <input
-          type="text"
-          class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-3 focus:border-primary/50 outline-none transition"
-        />
+        <input type="text"
+          class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 hover:border-primary/50 hover:ring-1 hover:ring-primary/50 transition-all" />
       </div>
 
       <div class="space-y-2 md:col-span-2">
         <label class="text-sm text-gray-300 ml-1">Email</label>
-        <input
-          type="email"
-          class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-3 focus:border-primary/50 outline-none transition"
-        />
+        <input type="email"
+          class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 hover:border-primary/50 hover:ring-1 hover:ring-primary/50 transition-all" />
       </div>
 
       <div class="space-y-2 md:col-span-2">
         <label class="text-sm text-gray-300 ml-1">Password</label>
-        <input
-          type="password"
-          class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-3 focus:border-primary/50 outline-none transition"
-        />
+        <input type="password"
+          class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 hover:border-primary/50 hover:ring-1 hover:ring-primary/50 transition-all" />
       </div>
 
       <div class="md:col-span-2 pt-4">
         <button
-          class="w-full bg-primary text-bg1 font-bold py-4 rounded-xl hover:brightness-110 active:scale-[0.99] transition shadow-xl shadow-primary/5"
-        >
+          class="w-full bg-primary text-[1.05rem] text-bg1 font-bold py-4 rounded-xl hover:brightness-110 active:scale-[0.99] transition shadow-xl shadow-primary/5 cursor-pointer">
           Get Started
         </button>
       </div>
@@ -50,9 +37,11 @@
 
     <p class="text-center mt-8 text-gray-400">
       Already a member?
-      <a routerLink="/login" class="text-primary font-semibold hover:underline cursor-pointer"
-        >Login here</a
-      >
+      <a routerLink="/login" class="text-primary font-semibold hover:underline cursor-pointer">Login here</a>
+    </p>
+    
+    <p class="text-center mt-1 text-gray-400">
+      <a routerLink="/" class="hover:underline cursor-pointer">Go Back to Home</a>
     </p>
   </div>
 </div>
