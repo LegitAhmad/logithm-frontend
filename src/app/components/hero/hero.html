@@ -1,6 +1,5 @@
 <section
-  class="relative flex flex-col lg:flex-row items-center gap-10 lg:gap-34 px-6 md:px-12 lg:px-20 pb-20 overflow-hidden"
->
+  class="relative flex flex-col lg:flex-row items-center gap-10 lg:gap-34 px-6 md:px-12 lg:px-20 pb-20 overflow-hidden">
   <!-- Text -->
   <div class="flex flex-col justify-center space-y-8 z-10 max-w-xl text-center lg:text-left">
     <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight">
@@ -9,31 +8,24 @@
     </h1>
 
     <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-      <button
-        class="bg-primary text-black px-8 py-4 rounded-xl font-bold text-lg hover:scale-105 transition"
-      >
+      <a 
+      routerLink="/signup"
+        class="bg-primary text-black px-6 py-0.5 rounded-xl font-bold text-xl whitespace-nowrap flex items-center justify-center hover:scale-105 transition cursor-pointer">
         Get Started
-      </button>
+      </a>
+
 
       <button
-        class="bg-transparent border border-gray-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/5 transition"
-      >
+        class="bg-transparent border border-gray-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-white/5 transition cursor-pointer">
         Learn More
       </button>
     </div>
   </div>
 
   <!-- Image -->
-  <div
-    class="relative w-full max-w-3xl flex items-center justify-center border border-[#9CBEFB] rounded-2xl p-2"
-  >
-    <div
-      class="absolute w-full h-auto aspect-19/11 opacity-30 bg-[#9CBEFB] rounded-full blur-2xl"
-    ></div>
-    <img
-      src="/code-page.webp"
-      alt="Hero Illustration"
-      class="w-full h-auto aspect-19/11 opacity-85 rounded-2xl animate-float"
-    />
+  <div class="relative w-full max-w-3xl flex items-center justify-center border border-[#9CBEFB] rounded-2xl p-2">
+    <div class="absolute w-full h-auto aspect-19/11 opacity-30 bg-[#9CBEFB] rounded-full blur-2xl"></div>
+    <img src="/code-page.webp" alt="Hero Illustration"
+      class="w-full h-auto aspect-19/11 opacity-85 rounded-2xl animate-float" />
   </div>
 </section>
