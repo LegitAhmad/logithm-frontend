@@ -1,0 +1,244 @@
+<div class="min-h-screen bg-linear-to-br from-bg1 via-bg2 to-bg1 p-6 text-white font-sans">
+  <header class="mb-8">
+    <div class="inline-block px-2 py-1 bg-primary text-black text-xs font-bold rounded mb-2">
+      CS201
+    </div>
+    <h1 class="text-3xl font-extrabold text-white">Data Structures & Algorithms</h1>
+    <p class="flex items-center gap-2 text-shadow-white mt-1">
+      <lucide-icon [img]="GraduationCap" class="w-4 h-4"></lucide-icon>
+      Dr. Sarah Mitchell
+    </p>
+  </header>
+
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
+    <!-- Completed Card -->
+    <div
+      class="bg-bg2 p-4 rounded-3xl border border-white/5 flex items-center gap-4 group hover:border-primary/30 transition"
+    >
+      <div class="p-3 bg-white/5 text-primary rounded-2xl group-hover:bg-primary/10 transition">
+        <lucide-icon [img]="BookOpen"></lucide-icon>
+      </div>
+      <div class="text-gray-400">
+        <p class="text-[10px] uppercase font-bold leading-none mb-1">Completed</p>
+        <p class="text-xl font-bold text-white">2/6</p>
+      </div>
+    </div>
+
+    <!-- My Score Card -->
+    <div
+      class="bg-bg2 p-4 rounded-3xl border border-white/5 flex items-center gap-4 group hover:border-primary/30 transition"
+    >
+      <div class="p-3 bg-white/5 text-primary rounded-2xl group-hover:bg-primary/10 transition">
+        <lucide-icon [img]="BarChart2"></lucide-icon>
+      </div>
+      <div class="text-gray-400">
+        <p class="text-[10px] uppercase font-bold leading-none mb-1">My Score</p>
+        <p class="text-xl font-bold text-white">78%</p>
+      </div>
+    </div>
+
+    <!-- Next Due Card -->
+    <div
+      class="bg-bg2 p-4 rounded-3xl border border-white/5 flex items-center gap-4 group hover:border-primary/30 transition"
+    >
+      <div class="p-3 bg-white/5 text-primary rounded-2xl group-hover:bg-primary/10 transition">
+        <lucide-icon [img]="Clock"></lucide-icon>
+      </div>
+      <div class="text-gray-400">
+        <p class="text-[10px] uppercase font-bold leading-none mb-1">Next Due</p>
+        <p class="text-xl font-bold text-white">Feb 15</p>
+      </div>
+    </div>
+
+    <!-- Progress Card -->
+    <div
+      class="bg-bg2 p-4 rounded-3xl border border-white/5 flex items-center gap-4 group hover:border-primary/30 transition"
+    >
+      <div class="p-3 bg-white/5 text-primary rounded-2xl group-hover:bg-primary/10 transition">
+        <lucide-icon [img]="Trophy"></lucide-icon>
+      </div>
+      <div class="text-gray-400">
+        <p class="text-[10px] uppercase font-bold leading-none mb-1">Progress</p>
+        <p class="text-xl font-bold text-white">33%</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-6">
+    <div class="flex-1">
+      <h2 class="text-xl font-bold mb-4 text-white">Assignments</h2>
+
+      <!-- Tabs -->
+      <div class="flex border-b border-white/10 mb-6 text-sm font-medium text-gray-400">
+        @for (tab of tabs; track tab) {
+          <button
+            (click)="setTab(tab)"
+            class="px-4 py-2 transition-all"
+            [ngClass]="{
+              'text-primary border-b-2 border-primary': activeTab() === tab,
+              'hover:text-white': activeTab() !== tab,
+            }"
+          >
+            {{ tab }} <span class="text-gray-400">({{ getAssignmentCount(tab) }})</span>
+          </button>
+        }
+      </div>
+
+      <!-- Assignment Cards -->
+      <div class="space-y-4 pr-2 max-h-[500px] overflow-y-auto custom-scrollbar">
+        @for (assignment of filteredAssignments(); track assignment.id) {
+          <div
+            (click)="selectAssignment(assignment)"
+            class="bg-bg2 p-5 rounded-3xl border border-white/5 cursor-pointer transition-all duration-200 group hover:border-primary/30"
+            [ngClass]="{
+              'border-2 border-primary shadow-sm': selectedAssignment()?.id === assignment.id,
+              'border-white/5 hover:shadow-sm': selectedAssignment()?.id !== assignment.id,
+            }"
+          >
+            <div class="flex justify-between items-start mb-2">
+              <h3 class="font-bold text-white">{{ assignment.title }}</h3>
+              <span
+                class="px-3 py-1 text-[10px] font-bold rounded-full uppercase"
+                [ngClass]="{
+                  'bg-orange-500/20 text-orange-400': assignment.status === 'Pending',
+                  'bg-green-500/20 text-green-400': assignment.status === 'Submitted',
+                  'bg-red-500/20 text-red-400': assignment.status === 'Overdue',
+                }"
+              >
+                {{ assignment.status }}
+              </span>
+            </div>
+
+            <div class="flex gap-4 text-xs text-gray-400 mb-4">
+              <span class="flex items-center gap-1">
+                <lucide-icon [img]="Calendar" class="w-3 h-3 text-gray-400"></lucide-icon>
+                {{ assignment.dueDate }}
+              </span>
+              <span class="flex items-center gap-1">
+                <lucide-icon [img]="Award" class="w-3 h-3 text-gray-400"></lucide-icon>
+                {{ assignment.marks }} marks
+              </span>
+            </div>
+
+            <div class="flex justify-between text-xs font-medium mb-1">
+              <span class="text-gray-400"
+                >{{ assignment.solved }}/{{ assignment.totalQuestions }} solved</span
+              >
+              <span class="text-gray-500">{{ assignment.progress }}%</span>
+            </div>
+
+            <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+              <div
+                class="h-full transition-all duration-300"
+                [style.width.%]="assignment.progress"
+                [ngClass]="{
+                  'bg-primary': assignment.status === 'Pending',
+                  'bg-green-500': assignment.status === 'Submitted',
+                  'bg-red-500': assignment.status === 'Overdue',
+                }"
+              ></div>
+            </div>
+          </div>
+        } @empty {
+          <div class="flex items-center justify-center text-gray-400 py-20">
+            No assignments found.
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (selectedAssignment(); as selected) {
+      <div
+        class="lg:w-[450px] bg-bg2 rounded-3xl border border-white/5 overflow-hidden flex flex-col shadow-sm group hover:border-primary/30 transition"
+      >
+        <!-- Header -->
+        <div class="flex bg-[#FFF]/15 p-6 items-center gap-4 border-b border-white/10">
+          <div class="p-3 bg-white/5 rounded-2xl group-hover:bg-primary/10 transition">
+            <span class="material-symbols-outlined text-primary scale-125">assignment</span>
+          </div>
+          <h2 class="text-2xl font-bold text-white border-b-2 border-primary pb-1">
+            {{ selected.title }}
+          </h2>
+          <span
+            class="ml-auto px-3 py-1 text-[10px] font-bold rounded-lg uppercase"
+            [ngClass]="{
+              'bg-orange-500/20 text-orange-400': selected.status === 'Pending',
+              'bg-green-500/20 text-green-400': selected.status === 'Submitted',
+              'bg-red-500/20 text-red-400': selected.status === 'Overdue',
+            }"
+          >
+            {{ selected.status }}
+          </span>
+        </div>
+
+        <!-- Content -->
+        <div class="p-6 space-y-6">
+          <div class="grid grid-cols-3 gap-3 mb-6">
+            <div class="text-center p-3 bg-white/5 rounded-2xl border border-white/10">
+              <p class="text-[9px] uppercase font-bold text-gray-400 mb-2">Score</p>
+              <p class="text-xl font-bold text-white">
+                {{ selected.score ?? '—' }}/{{ selected.marks }}
+              </p>
+            </div>
+            <div class="text-center p-3 bg-white/5 rounded-2xl border border-white/10">
+              <p class="text-[9px] uppercase font-bold text-gray-400 mb-2">Attempts</p>
+              <p class="text-xl font-bold text-white">{{ selected.attempts || 0 }}</p>
+            </div>
+            <div class="text-center p-3 bg-white/5 rounded-2xl border border-white/10">
+              <p class="text-[9px] uppercase font-bold text-gray-400 mb-2">Progress</p>
+              <p class="text-xl font-bold text-white">
+                {{ selected.solved }}/{{ selected.totalQuestions }}
+              </p>
+            </div>
+          </div>
+
+          <h4 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-4">
+            Question Breakdown
+          </h4>
+
+          <div class="space-y-2">
+            @for (q of questionBreakdown; track q.id) {
+              <div
+                class="flex items-center justify-between p-3 border border-white/10 rounded-2xl hover:bg-white/5 transition-colors"
+              >
+                <div class="flex items-center gap-3">
+                  <lucide-icon [img]="XCircle" class="w-4 h-4 text-gray-500"></lucide-icon>
+                  <span class="text-sm font-medium text-white">{{ q.title }}</span>
+                </div>
+                <span class="text-sm text-gray-400">{{ q.score ?? '--' }}/{{ q.marks }}</span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Footer Buttons -->
+        <div class="mt-auto p-6 space-y-3">
+          @if (selected.status === 'Pending') {
+            <button
+              class="w-full bg-primary text-black py-3 rounded-2xl font-medium hover:bg-primary/80 transition"
+            >
+              Attempt Assignment
+            </button>
+          } @else if (selected.status === 'Submitted') {
+            <button
+              class="w-full bg-green-500/20 text-green-400 py-3 rounded-2xl font-medium hover:bg-green-500/30 transition"
+            >
+              Review Submission
+            </button>
+            @if (!isDeadlinePassed(selected)) {
+              <button
+                class="w-full border border-white/10 py-3 rounded-2xl font-medium hover:bg-white/5 transition"
+              >
+                Resubmit
+              </button>
+            }
+          } @else if (isDeadlinePassed(selected)) {
+            <div class="bg-red-500/10 border border-red-500/20 rounded-2xl text-center p-3">
+              <p class="text-xs font-bold text-red-400">Deadline has passed — submission closed</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

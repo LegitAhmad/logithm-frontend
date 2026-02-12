@@ -3,6 +3,7 @@ import { Home } from './pages/home/home';
 import { Login } from './pages/auth/login/login';
 import { Signup } from './pages/auth/signup/signup';
 import { Editor } from './pages/editor/editor';
+import { Course } from './pages/course/course';
 
 export const routes: Routes = [
   {
@@ -20,8 +21,13 @@ export const routes: Routes = [
     component: Signup,
   },
   {
+    path: 'course',
+    title: 'course',
+    component: Course,
+  },
+  {
     path: 'course/question',
-    title: 'Course | Question',
+    title: 'Question',
     component: Editor,
   },
 ];
