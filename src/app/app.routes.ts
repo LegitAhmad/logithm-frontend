@@ -4,6 +4,7 @@ import { Login } from './pages/auth/login/login';
 import { Signup } from './pages/auth/signup/signup';
 import { Editor } from './pages/editor/editor';
 import { Course } from './pages/course/course';
+import { QuestionEditorComponent } from './components/question-editor/question-editor';
 
 export const routes: Routes = [
   {
@@ -29,5 +30,10 @@ export const routes: Routes = [
     path: 'course/question',
     title: 'Question',
     component: Editor,
+  },
+  {
+    path: 'question-editor',
+    title: 'Question Editor',
+    component: QuestionEditorComponent,
   },
 ];

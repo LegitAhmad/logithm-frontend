@@ -1,0 +1,81 @@
+<div class="h-screen bg-linear-to-br from-bg1 via-bg2 to-bg1 text-white p-8 flex flex-col">
+  <h1 class="text-2xl font-bold mb-6 flex-shrink-0">Create Question</h1>
+
+  <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-6 overflow-hidden">
+    <!-- LEFT PANEL -->
+    <div class="bg-white/5 rounded-2xl p-6 border border-slate-700 flex flex-col">
+      <label class="block text-sm mb-2">Question Title</label>
+      <input
+        [value]="question().title"
+        (input)="updateTitle($event.target.value)"
+        class="w-full mb-4 bg-[#FFF]/15 border border-slate-600 rounded-lg px-4 py-2 shrink-0"
+      />
+
+      <label class="block text-sm mb-2">Description (Markdown)</label>
+      <app-monaco-editor
+        class="flex-1 border border-gray-600 rounded-3xl"
+        [language]="'markdown'"
+        [value]="question().description"
+        (valueChange)="updateDescription($event)"
+      ></app-monaco-editor>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="bg-white/5 rounded-2xl p-6 border border-gray-700 flex flex-col">
+      <div class="flex justify-between items-center mb-4 shrink-0">
+        <h2 class="text-lg font-semibold">Test Cases ({{ question().testCases.length }})</h2>
+        <button
+          (click)="addTestCase()"
+          class="bg-primary cursor-pointer hover:bg-[#FFF]/15 text-black/90 px-4 py-2 rounded-lg text-sm font-medium"
+        >
+          + Add Test Case
+        </button>
+      </div>
+
+      <!-- Output Type -->
+      <div class="mb-4 flex-shrink-0">
+        <label class="block text-sm mb-2">Output Type</label>
+        <select
+          [(ngModel)]="question().outputType"
+          class="w-full bg-white/5 text-white border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
+        >
+          <option value="string" class="bg-[#FFF]/15 text-black">String</option>
+          <option value="number" class="bg-[#FFF]/15 text-black">Number</option>
+          <option value="array" class="bg-[#FFF]/15 text-black">Array</option>
+          <option value="map" class="bg-[#FFF]/15 text-black">Map</option>
+          <option value="json" class="bg-[#FFF]/15 text-black">JSON</option>
+          <option value="function" class="bg-[#FFF]/15 text-black">Function</option>
+        </select>
+      </div>
+
+      <!-- Test Cases List -->
+      <div class="flex-1 overflow-y-auto space-y-4">
+        <div
+          *ngIf="question().testCases.length === 0"
+          class="text-slate-400 text-center py-16 border border-dashed border-gray-600 rounded-lg"
+        >
+          No test cases added yet.
+        </div>
+
+        <div
+          *ngFor="let tc of question().testCases"
+          class="bg-[#FFF]/15 p-4 rounded-xl border border-gray-600 cursor-pointer hover:border-primary transition"
+          (click)="editTestCase(tc)"
+        >
+          <div class="font-semibold mb-2">Test Case</div>
+          <div class="text-xs text-slate-400 truncate">Input: {{ tc.input }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <app-test-case-modal
+    *ngIf="showModal()"
+    [outputType]="question().outputType!"
+    [functionLanguage]="question().functionLanguage!"
+    [testCase]="editingTestCase()"
+    (close)="showModal.set(false)"
+    (save)="saveTestCase($event)"
+  />
+</div>
