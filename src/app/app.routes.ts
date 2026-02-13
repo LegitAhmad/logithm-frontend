@@ -3,6 +3,7 @@ import { Home } from './pages/home/home';
 import { Login } from './pages/auth/login/login';
 import { Signup } from './pages/auth/signup/signup';
 import { Editor } from './pages/editor/editor';
+import { Dashboard } from './pages/dashboard/dashboard';
 
 export const routes: Routes = [
   {
@@ -23,5 +24,10 @@ export const routes: Routes = [
     path: 'course/question',
     title: 'Course | Question',
     component: Editor,
+  },
+  {
+    path: 'dashboard',
+    title: 'Dashboard',
+    component: Dashboard,
   },
 ];
