@@ -11,6 +11,13 @@
   --font-sans: 'Inter', ui-sans-serif, system-ui;
 
   --radius-xl: 1.5rem;
+
+  --background-image-dashboard-grad: linear-gradient(
+    to bottom, 
+    #171a1b 0%, 
+    #242729 51%, 
+    #171a1b 100%
+  );
 }
 
 @layer base {
