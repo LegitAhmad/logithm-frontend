@@ -1,0 +1,79 @@
+<div class="min-h-screen bg-dashboard-grad text-white">
+    <app-navbar />
+
+    <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 pt-32 px-8 pb-8">
+
+        <section class="bg-bg2 rounded-3xl p-8">
+            <div class="mb-8 flex items-end justify-between">
+                <h2 class="text-4xl ml-3 font-semibold">My Courses</h2>
+                <div class="bg-bg3 flex gap-2 rounded-full p-1">
+                    <button
+                        class="bg-primary px-4 py-1 text-sm font-medium text-black rounded-full cursor-pointer">All</button>
+                    <button class="px-4 py-1 text-sm font-medium text-gray-400 cursor-pointer">Favourites</button>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                @for (course of courses; track course.name) {
+                <div 
+                    routerLink="/course"
+                    class="bg-bg2 hover:bg-bg3 flex items-center justify-between rounded-2xl p-5 transition-colors cursor-pointer shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="bg-primary flex h-12 w-12 items-center justify-center rounded-full text-xl font-bold text-black">
+                            {{ course.name[0] }}
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-medium">{{ course.name }}</h3>
+                            <p class="text-sm text-gray-400">{{ course.professor }}</p>
+                        </div>
+                    </div>
+                    <button (click)="toggleFavorite(course)" title="toggleFavorite"
+                        class="transition-all duration-300 cursor-pointer" [class.text-accent]="course.isFavorite"
+                        [class.text-gray-500]="!course.isFavorite">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.382-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                    </button>
+                </div>
+                }
+            </div>
+        </section>
+
+        <div class="flex flex-col gap-8">
+
+            <section class="bg-bg2 relative rounded-3xl p-8 ">
+                <button class="absolute top-8 right-8 text-primary text-3xl cursor-pointer">+</button>
+                <h2 class="mb-8 text-3xl font-semibold text-center">Pending Assignments</h2>
+
+                <div class="space-y-4">
+                    @for (group of pending; track group.course) {
+                    <div class="bg-bg2 rounded-xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                        <h3 class="mb-2 font-bold">{{ group.course }}</h3>
+                        @for (task of group.tasks; track task.title) {
+                        <div class="hover:opacity-50 cursor-pointer flex justify-between text-sm">
+                            <span class="text-gray-300">• {{ task.title }}</span>
+                            <span class="text-gray-400">Due: {{ task.dueTime }} {{ task.dueDate }}</span>
+                        </div>
+                        }
+                    </div>
+                    }
+                </div>
+            </section>
+
+            <section class="bg-bg2 flex-1 rounded-3xl p-8">
+                <h2 class="mb-8 text-3xl font-semibold text-center">Missed Assignments</h2>
+                <div class="bg-bg2 rounded-xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                    <h3 class="mb-2 font-bold text-gray-200">Object Oriented Programming</h3>
+                    <div class="hover:opacity-50 cursor-pointer flex justify-between text-sm">
+                        <span class="text-gray-300">• Mid Project Report</span>
+                        <span class="text-gray-400">Date: 12:00 1/23/2026</span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+</div>
