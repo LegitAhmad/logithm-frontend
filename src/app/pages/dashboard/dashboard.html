@@ -7,14 +7,16 @@
             <div class="mb-8 flex items-end justify-between">
                 <h2 class="text-4xl ml-3 font-semibold">My Courses</h2>
                 <div class="bg-bg3 flex gap-2 rounded-full p-1">
-                    <button class="bg-primary px-4 py-1 text-sm font-medium text-black rounded-full cursor-pointer">All</button>
+                    <button
+                        class="bg-primary px-4 py-1 text-sm font-medium text-black rounded-full cursor-pointer">All</button>
                     <button class="px-4 py-1 text-sm font-medium text-gray-400 cursor-pointer">Favourites</button>
                 </div>
             </div>
 
             <div class="space-y-4">
                 @for (course of courses; track course.name) {
-                <div
+                <div 
+                    routerLink="/course"
                     class="bg-bg2 hover:bg-bg3 flex items-center justify-between rounded-2xl p-5 transition-colors cursor-pointer shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
                     <div class="flex items-center gap-4">
                         <div
@@ -26,9 +28,8 @@
                             <p class="text-sm text-gray-400">{{ course.professor }}</p>
                         </div>
                     </div>
-                    <button (click)="toggleFavorite(course)"
-                        class="transition-all duration-300 cursor-pointer"
-                        [class.text-accent]="course.isFavorite"
+                    <button (click)="toggleFavorite(course)" title="toggleFavorite"
+                        class="transition-all duration-300 cursor-pointer" [class.text-accent]="course.isFavorite"
                         [class.text-gray-500]="!course.isFavorite">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">
