@@ -37,6 +37,8 @@ export const routes: Routes = [
     path: 'question-editor',
     title: 'Question Editor',
     component: QuestionEditorComponent,
+  },
+  {
     path: 'dashboard',
     title: 'Dashboard',
     component: Dashboard,
