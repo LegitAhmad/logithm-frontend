@@ -28,4 +28,30 @@
   html {
     scroll-behavior: smooth;
   }
+
+  /* Target the scrollbar specifically */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px; /* Slightly wider for better UX */
 }
+
+/* The background of the scrollbar area */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1e1e1e; /* Matches your --color-card */
+  border-radius: 10px;
+  margin-block: 10px; /* Adds space at top/bottom so it doesn't touch the edges */
+}
+
+/* The draggable handle */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #3a3a3a; /* Matches your --color-bg3 */
+  border-radius: 10px;
+  border: 1px solid #242729; /* Adds a tiny border to define it against cards */
+}
+
+/* Handle on hover */
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #ebd5ab; /* Changes to your --color-primary on hover */
+}
+}
+
+

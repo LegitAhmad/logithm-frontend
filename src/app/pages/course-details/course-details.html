@@ -1,29 +1,29 @@
-<div class="min-h-screen bg-dashboard-grad text-white">
+<div class="h-screen flex flex-col bg-dashboard-grad text-white overflow-hidden">
   <app-navbar />
 
-  <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 pt-32 px-8 pb-8">
+  <div class="flex-1 grid grid-cols-1 gap-8 lg:grid-cols-2 px-8 pb-6 mt-[120px] h-full overflow-hidden">
 
-    <section class="bg-bg2 rounded-3xl p-8">
-      <div class="mb-8 flex items-end justify-between">
-        <h2 class="text-4xl ml-3 font-semibold">Assignments</h2>
+    <section class="bg-bg2 rounded-3xl p-6 flex flex-col h-full overflow-hidden">
+      <div class="mb-6 flex items-end justify-between shrink-0">
+        <h2 class="text-3xl ml-3 font-semibold">Assignments</h2>
         <div class="bg-bg3 flex gap-2 rounded-full p-1">
           <button class="bg-primary px-4 py-1 text-sm font-medium text-black rounded-full cursor-pointer">Pending</button>
           <button class="px-4 py-1 text-sm font-medium text-gray-400 cursor-pointer">Completed</button>
         </div>
       </div>
 
-      <div class="space-y-4">
+      <div class="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1 pb-4">
         @for (item of assignments; track item.title) {
-        <div class="bg-bg2 hover:bg-bg3 flex items-center justify-between rounded-2xl p-5 transition-colors cursor-pointer shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <div class="bg-bg2 hover:bg-bg3 flex items-center justify-between rounded-2xl p-4 transition-colors cursor-pointer shadow-[0_5px_3px_rgba(0,0,0,0.5)] border border-white/5">
           <div class="flex items-center gap-4">
-            <div class="bg-primary flex h-12 w-12 items-center justify-center rounded-full text-xl font-bold text-black">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div class="bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl font-bold text-black">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <div>
-              <h3 class="text-lg font-medium">{{ item.title }}</h3>
-              <p class="text-sm text-gray-400">Due: {{ item.due }}</p>
+            <div class="min-w-0">
+              <h3 class="text-md font-medium truncate">{{ item.title }}</h3>
+              <p class="text-xs text-gray-400">Due: {{ item.due }}</p>
             </div>
           </div>
         </div>
@@ -31,57 +31,57 @@
       </div>
     </section>
 
-    <div class="flex flex-col gap-8">
+    <div class="flex flex-col gap-6 h-full overflow-hidden">
 
       <section (mouseenter)="isHovered = true" (mouseleave)="isHovered = false"
-        class="bg-bg2 relative rounded-3xl p-8 min-h-[250px] overflow-hidden">
+        class="bg-bg2 relative rounded-3xl p-6 flex flex-col flex-[1.2] overflow-hidden">
         
-        <h2 class="mb-8 text-3xl font-semibold text-center">Class Statistics</h2>
+        <h2 class="mb-4 text-2xl font-semibold text-center shrink-0">Class Statistics</h2>
 
-        <div class="relative flex items-center justify-center h-full">
+        <div class="relative flex items-center justify-center flex-1">
           <div class="transition-transform duration-500 ease-in-out" [class.-translate-x-32]="isHovered">
-            <div class="relative w-40 h-40 flex items-center justify-center">
+            <div class="relative w-36 h-36 flex items-center justify-center">
               <svg class="absolute w-full h-full -rotate-90" viewBox="0 0 192 192">
                 <circle cx="96" cy="96" r="85" stroke="#ebd5ab1a" stroke-width="2" fill="none" />
                 <circle cx="96" cy="96" r="70" stroke="#ebd5ab33" stroke-width="12" fill="none" />
                 <circle cx="96" cy="96" r="70" stroke="#facc15" stroke-width="12" fill="none"
                   stroke-dasharray="440" stroke-dashoffset="110" stroke-linecap="round" />
               </svg>
-              <span class="text-lg font-bold">Statistics</span>
+              <span class="text-md font-bold">Statistics</span>
             </div>
           </div>
 
           <div class="absolute right-4 transition-all duration-500" 
             [class.opacity-100]="isHovered" [class.translate-x-0]="isHovered" 
             [class.opacity-0]="!isHovered" [class.translate-x-10]="!isHovered">
-            <div class="bg-bg3 rounded-2xl p-5 shadow-xl border border-white/5">
-              <h4 class="font-bold text-md mb-3 border-b border-white/10 pb-1">Details</h4>
-              <ul class="space-y-2 text-xs">
-                <li class="text-gray-300">Your Marks <span class="text-white font-bold ml-2">82%</span></li>
-                <li class="text-accent">Class Average <span class="font-bold ml-2">76%</span></li>
-                <li class="text-primary">Class Highest <span class="font-bold ml-2">91%</span></li>
+            <div class="bg-bg3 rounded-2xl p-4 shadow-xl border border-white/5">
+              <h4 class="font-bold text-sm mb-2 border-b border-white/10 pb-1">Details</h4>
+              <ul class="space-y-1.5 text-xs">
+                <li class="text-gray-300">Your Marks <span class="text-white font-bold ml-1">82%</span></li>
+                <li class="text-accent">Class Average <span class="font-bold ml-1">76%</span></li>
+                <li class="text-primary">Class Highest <span class="font-bold ml-1">91%</span></li>
               </ul>
             </div>
           </div>
         </div>
       </section>
 
-      <section class="bg-bg2 flex-1 rounded-3xl p-8">
-        <h2 class="mb-8 text-3xl font-semibold text-center">Result</h2>
-        <div class="space-y-4">
-          <div class="bg-bg2 rounded-xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-            <h3 class="font-bold mb-2">Mid Project Report</h3>
-            <div class="hover:opacity-50 cursor-pointer flex justify-between text-sm">
+      <section class="bg-bg2 rounded-3xl p-6 flex flex-col flex-1 overflow-hidden">
+        <h2 class="mb-4 text-2xl font-semibold text-center shrink-0">Result</h2>
+        <div class="space-y-3 overflow-y-auto pr-2 custom-scrollbar pb-4">
+          <div class="bg-bg2 rounded-xl p-4 shadow-[0_5px_3px_rgba(0,0,0,0.5)] border border-white/5">
+            <h3 class="font-bold mb-2 text-sm">Mid Project Report</h3>
+            <div class="hover:opacity-50 cursor-pointer flex justify-between text-xs">
               <span class="text-gray-300">• Your Marks <b class="text-white">18/20</b></span>
-              <span class="text-gray-400">Class Avg <b class="text-white">15/20</b> • Highest <b class="text-white">19/20</b></span>
+              <span class="text-gray-400">Avg <b class="text-white">15/20</b> • Highest <b class="text-white">19/20</b></span>
             </div>
           </div>
           
-          <div class="bg-bg2 rounded-xl p-5 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-            <h3 class="font-bold mb-2">Lab Manual 2</h3>
-            <div class="hover:opacity-50 cursor-pointer flex justify-between text-sm">
+          <div class="bg-bg2 rounded-xl p-4 shadow-[0_5px_3px_rgba(0,0,0,0.5)] border border-white/5">
+            <h3 class="font-bold mb-2 text-sm">Lab Manual 2</h3>
+            <div class="hover:opacity-50 cursor-pointer flex justify-between text-xs">
               <span class="text-gray-300">• Your Marks <b class="text-white">18/20</b></span>
-              <span class="text-gray-400">Class Avg <b class="text-white">15/20</b> • Highest <b class="text-white">19/20</b></span>
+              <span class="text-gray-400">Avg <b class="text-white">15/20</b> • Highest <b class="text-white">19/20</b></span>
             </div>
           </div>
         </div>
