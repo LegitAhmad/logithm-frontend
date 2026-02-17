@@ -1,4 +1,4 @@
-<div class="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-bg1 to-bg2">
+<div class="min-h-screen flex items-center justify-center p-6 bg-linear-to-br from-bg1 to-bg2">
   <div
     class="w-full max-w-md bg-card border border-white/5 rounded-3xl p-8 md:p-10 shadow-2xl relative overflow-hidden group">
     <div
@@ -13,26 +13,35 @@
       <p class="text-gray-400 mt-2">Log in to continue your logic journey</p>
     </div>
 
-    <form class="space-y-6">
+    <form class="space-y-6" [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="space-y-2">
-        <label class="text-sm font-medium text-gray-300 ml-1">Email Address</label>
-        <input type="email" placeholder="anas@logithm.com"
+        <label class="text-sm font-medium text-gray-300 ml-1" for="login-identifier">Email or Username</label>
+        <input id="login-identifier" type="text" autocomplete="username" formControlName="identifier"
+          placeholder="anas@logithm.com"
           class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 hover:border-primary/50 hover:ring-1 hover:ring-primary/50 transition-all" />
       </div>
 
       <div class="space-y-2">
         <div class="flex justify-between items-center px-1">
-          <label class="text-sm font-medium text-gray-300">Password</label>
+          <label class="text-sm font-medium text-gray-300" for="login-password">Password</label>
           <a href="#" class="text-xs text-primary hover:underline">Forgot?</a>
         </div>
-        <input type="password" placeholder="••••••••"
+        <input id="login-password" type="password" autocomplete="current-password" formControlName="password"
+          placeholder="••••••••"
           class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 hover:border-primary/50 hover:ring-1 hover:ring-primary/50 transition-all" />
       </div>
 
-      <a routerLink="/dashboard"
-        class="block w-full text-center bg-primary text-[1.05rem] text-bg1 font-bold py-3.5 rounded-xl hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary/10 cursor-pointer no-underline">
-        Login
-      </a>
+      @if (errorMessage()) {
+        <div class="text-sm text-rose-200 bg-rose-500/10 border border-rose-400/30 rounded-xl px-4 py-3" role="alert"
+          aria-live="polite">
+          {{ errorMessage() }}
+        </div>
+      }
+
+      <button type="submit" [disabled]="isLoading()" [class.opacity-60]="isLoading()"
+        class="w-full text-center bg-primary text-[1.05rem] text-bg1 font-bold py-3.5 rounded-xl hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary/10 cursor-pointer">
+        {{ isLoading() ? 'Logging in...' : 'Login' }}
+      </button>
     </form>
 
     <p class="text-center mt-8 text-gray-400">
