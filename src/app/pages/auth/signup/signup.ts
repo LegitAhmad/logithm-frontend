@@ -34,13 +34,13 @@ export class Signup {
       return;
     }
 
-    const { email, password } = this.form.getRawValue();
+    const { firstName, lastName, email, password } = this.form.getRawValue();
 
     this.errorMessage.set(null);
     this.isLoading.set(true);
 
     this.authService
-      .signup({ email, password })
+      .signup({ firstName, lastName, email, password })
       .pipe(finalize(() => this.isLoading.set(false)))
       .subscribe({
         next: (tokens) => {
@@ -69,5 +69,4 @@ export class Signup {
 
     return 'Unable to sign up. Please try again.';
   }
-
 }

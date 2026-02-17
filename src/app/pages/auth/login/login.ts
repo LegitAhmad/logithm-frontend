@@ -36,6 +36,7 @@ export class Login {
 
     this.errorMessage.set(null);
     this.isLoading.set(true);
+    console.log(this.form.getRawValue());
 
     this.authService
       .login(this.form.getRawValue())
@@ -43,7 +44,7 @@ export class Login {
       .subscribe({
         next: (tokens) => {
           this.authService.storeTokens(tokens);
-          void this.router.navigateByUrl('/dashboard');
+          this.router.navigateByUrl('/dashboard');
         },
         error: (error: HttpErrorResponse) => {
           this.errorMessage.set(this.readErrorMessage(error));

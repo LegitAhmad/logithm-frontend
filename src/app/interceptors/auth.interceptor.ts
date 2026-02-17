@@ -14,6 +14,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   }
 
   const accessToken = authService.getAccessToken();
+  console.log('AuthInterceptor - Access Token:', accessToken);
 
   // If no token, proceed without auth header
   if (!accessToken) {
