@@ -5,6 +5,7 @@ import { Signup } from './pages/auth/signup/signup';
 import { Editor } from './pages/editor/editor';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { CourseDetails } from './pages/course-details/course-details';
+import { Assignment } from './pages/assignment/assignment';
 
 export const routes: Routes = [
   {
@@ -35,5 +36,10 @@ export const routes: Routes = [
     path: 'course',
     title: 'Course',
     component: CourseDetails,
+  },
+  {
+    path: 'assignment',
+    title: 'Assignment',
+    component: Assignment,
   },
 ];
