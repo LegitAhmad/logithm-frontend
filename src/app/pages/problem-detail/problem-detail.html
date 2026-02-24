@@ -1,0 +1,176 @@
+<div class="h-screen flex flex-col bg-dashboard-grad text-white overflow-hidden">
+
+  <app-navbar />
+
+  <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 pb-4 mt-[130px] h-full overflow-hidden">
+
+    <!-- ================= DESCRIPTION ================= -->
+    <section
+      class="lg:col-span-4 bg-bg1/15 rounded-2xl border border-white/5 flex flex-col h-full overflow-hidden shadow-xl">
+
+      <div class="p-4 border-b border-white/10 shrink-0">
+        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">
+          Description
+        </h2>
+      </div>
+
+      <div class="p-4 overflow-y-auto custom-scrollbar flex-1 prose prose-invert prose-sm max-w-none">
+        <markdown [src]="markdownPath"></markdown>
+      </div>
+
+    </section>
+
+    <!-- ================= CODE + RESULTS ================= -->
+    <div class="lg:col-span-8 flex flex-col gap-4 h-full overflow-hidden">
+
+      <!-- ================= CODE EDITOR ================= -->
+      <section
+        class="flex-[1.5] bg-bg1/20 backdrop-blur-xl rounded-2xl border border-white/5 flex flex-col shadow-xl">
+
+        <div class="px-4 py-2 border-b border-white/10">
+          <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
+            Code Editor
+          </span>
+        </div>
+
+        <div class="h-[360px] flex-1 bg-[#171a1b]">
+          @if (isBrowser) {
+          <ngx-monaco-editor
+            class="h-full w-full"
+            [options]="editorOptions"
+            [(ngModel)]="code"
+            (onInit)="onEditorInit($event)">
+          </ngx-monaco-editor>
+          }
+        </div>
+
+        <!-- Buttons -->
+        <div class="p-3 flex justify-between items-center bg-[#171a1b] border-t border-white/5">
+
+          <span class="text-[9px] text-gray-500 uppercase">
+            Ready to test
+          </span>
+
+          <div class="flex gap-2">
+
+            <button
+              (click)="runTest()"
+              class="text-gray-300 hover:text-white px-3 py-1.5 text-xs font-medium rounded-lg cursor-pointer">
+              Run
+            </button>
+
+            <button
+              (click)="submitCode()"
+              class="bg-primary hover:bg-primary/80 px-4 py-1.5 rounded-lg text-black text-xs font-semibold shadow-md cursor-pointer">
+              Submit
+            </button>
+
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================= RESULTS ================= -->
+      <section
+        class="flex-1 bg-bg1/15 rounded-2xl border border-white/5 flex flex-col overflow-hidden shadow-xl">
+
+        <div class="px-4 py-2 border-b border-white/10">
+          <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">
+            Test Results
+          </h2>
+        </div>
+
+        <div class="p-4 flex-1 flex flex-col gap-3 overflow-hidden">
+
+          <!-- Test Case Buttons -->
+          <div class="flex gap-2 shrink-0">
+
+            @for (test of testCases; track test.id) {
+
+            <button
+              (click)="selectedCase = test.id"
+              [class.bg-primary/20]="selectedCase === test.id"
+              [class.text-primary]="selectedCase === test.id"
+              class="bg-white/5 text-gray-400 px-2.5 py-1 text-[10px] rounded-md font-medium hover:bg-white/10 border border-white/5 transition-all cursor-pointer">
+
+              Case {{ test.id }}
+
+            </button>
+
+            }
+
+          </div>
+
+          <!-- Results Grid -->
+          <div class="grid grid-cols-2 gap-4 flex-1 overflow-hidden text-[11px]">
+
+            <div class="flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-2">
+
+              @if (testCases[selectedCase - 1]; as activeTest) {
+
+              <div>
+                <label class="text-[9px] text-gray-500 uppercase">Input</label>
+                <div class="bg-white/5 border border-white/10 rounded-lg p-2 font-mono text-gray-200">
+                  {{ activeTest.input }}
+                </div>
+              </div>
+
+              <div>
+                <label class="text-[9px] text-gray-500 uppercase">Target</label>
+                <div class="bg-white/5 border border-white/10 rounded-lg p-2 font-mono text-gray-200">
+                  {{ activeTest.target }}
+                </div>
+              </div>
+
+              }
+
+            </div>
+
+            <!-- Output -->
+            <div class="flex flex-col gap-2 overflow-y-auto custom-scrollbar border-l border-white/10 pl-4">
+
+              <label class="text-[9px] text-gray-500 uppercase">
+                Result
+              </label>
+
+              @if (testResults) {
+
+              <div class="flex items-center gap-2">
+                <span class="text-green-400 text-xs font-semibold">
+                  {{ testResults.status }}
+                </span>
+
+                <span class="text-gray-500 text-[9px]">
+                  {{ testResults.runtime }}
+                </span>
+              </div>
+
+              <div>
+                <label class="text-[9px] text-gray-500 uppercase">
+                  Output
+                </label>
+
+                <div class="bg-white/5 border border-white/10 rounded-lg p-2 font-mono text-green-200 text-[11px]">
+                  {{ testResults.output }}
+                </div>
+              </div>
+
+              }
+
+              @else {
+              <div class="text-gray-600 text-[10px] italic">
+                Click "Run" to see output
+              </div>
+              }
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
+  </div>
+</div>

@@ -6,6 +6,7 @@ import { Editor } from './pages/editor/editor';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { CourseDetails } from './pages/course-details/course-details';
 import { Assignment } from './pages/assignment/assignment';
+import { ProblemDetail } from './pages/problem-detail/problem-detail';
 
 export const routes: Routes = [
   {
@@ -41,5 +42,10 @@ export const routes: Routes = [
     path: 'assignment',
     title: 'Assignment',
     component: Assignment,
+  },
+  {
+    path: 'problem-detail',
+    title: 'Problem Detail',
+    component: ProblemDetail,
   },
 ];
