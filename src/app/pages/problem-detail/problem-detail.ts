@@ -25,42 +25,42 @@ export class ProblemDetail {
   code: string = `class Solution:\n    def twoSum(self, nums: list[int], target: int) -> list[int]:\n        return [0, 1]`;
 
   // Monaco Options for a writable, responsive editor
-editorOptions = {
-  theme: 'vs-dark',
-  language: 'python',
-  automaticLayout: true,
+  editorOptions = {
+    theme: 'vs-dark',
+    language: 'python',
+    automaticLayout: true,
 
-  fontSize: 15,
-  fontFamily: 'Inter, monospace',
-  fontLigatures: true,
+    fontSize: 15,
+    fontFamily: 'Inter, monospace',
+    fontLigatures: true,
 
-  minimap: { enabled: false },
-  scrollBeyondLastLine: false,
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
 
-  smoothScrolling: true,
-  cursorSmoothCaretAnimation: 'on',
-  cursorBlinking: 'smooth',
-  roundedSelection: true,
-  renderLineHighlight: 'all',
+    smoothScrolling: true,
+    cursorSmoothCaretAnimation: 'on',
+    cursorBlinking: 'smooth',
+    roundedSelection: true,
+    renderLineHighlight: 'all',
 
-  padding: { top: 16, bottom: 16 },
+    padding: { top: 16, bottom: 16 },
 
-  renderWhitespace: 'selection',
-  cursorWidth: 2,
-  letterSpacing: 0.5,
+    renderWhitespace: 'selection',
+    cursorWidth: 2,
+    letterSpacing: 0.5,
 
-  scrollbar: {
-    verticalScrollbarSize: 6,
-    horizontalScrollbarSize: 6,
-    useShadows: false
-  },
+    scrollbar: {
+      verticalScrollbarSize: 6,
+      horizontalScrollbarSize: 6,
+      useShadows: false
+    },
 
-  overviewRulerBorder: false,
-  hideCursorInOverviewRuler: true,
+    overviewRulerBorder: false,
+    hideCursorInOverviewRuler: true,
 
-  folding: true,
-  lineNumbersMinChars: 3
-};
+    folding: true,
+    lineNumbersMinChars: 3
+  };
 
   markdownPath = 'assets/problems/two-sum.md';
   testResults: any = null;
@@ -80,50 +80,48 @@ editorOptions = {
 
   private themeInitialized = false;
 
-async onEditorInit(editor: any) {
-  if (!this.isBrowser) return;
+  async onEditorInit(editor: any) {
+    if (!this.isBrowser) return;
 
-  const monaco = await import('monaco-editor');
+    const monaco = await import('monaco-editor');
 
-  // Define theme if not already defined
-  if (!this.themeInitialized) {
-    monaco.editor.defineTheme('logithm-theme', {
-  base: 'vs', 
-  inherit: true,
-  rules: [
-    { token: 'comment', foreground: '6B7280', fontStyle: 'italic' },
-    { token: 'keyword', foreground: 'ebd5ab' },
-    { token: 'string', foreground: 'facc15' },
-    { token: 'number', foreground: 'facc15' }
-  ],
-  colors: {
-    // 🔥 MATCH YOUR PAGE EXACTLY
-    'editor.background': '#171a1b',
-    'editor.foreground': '#ffffff',
+    // Define theme if not already defined
+    if (!this.themeInitialized) {
+      monaco.editor.defineTheme('logithm-theme', {
+        base: 'vs-dark', // Changed from 'vs' to 'vs-dark'
+        inherit: true,
+        rules: [
+          { token: 'keyword', foreground: 'ebd5ab' },
+          { token: 'string', foreground: 'facc15' },
+          { token: 'comment', foreground: '6B7280', fontStyle: 'italic' },
+          { token: 'number', foreground: 'facc15' }
+        ],
+        colors: {
+          // Use transparency to let the CSS background show through
+          'editor.background': '#00000000',
+          'editorGutter.background': '#00000000',
+          'editor.lineHighlightBackground': '#ffffff05',
 
-    'editorCursor.foreground': '#facc15',
-    'editor.selectionBackground': '#242729',
-    'editor.lineHighlightBackground': '#2a2a2a',
-    'editorLineNumber.foreground': '#3a3a3a',
+          'editor.foreground': '#ffffff',
+          'editorCursor.foreground': '#facc15',
+          'editorLineNumber.foreground': '#4b5563',
+          'editorLineNumber.activeForeground': '#facc15',
 
-    'editorGutter.background': '#171a1b',
-    'editorBracketMatch.background': '#242729',
-    'editorBracketMatch.border': '#ebd5ab',
+          // Clean up borders
+          'editor.border': '#00000000',
+          'editorBracketMatch.background': '#ffffff10',
+          'editorBracketMatch.border': '#facc15'
+        }
+      });
 
-    'scrollbarSlider.background': '#3a3a3a88',
-    'scrollbarSlider.hoverBackground': '#ebd5ab88',
-    'scrollbarSlider.activeBackground': '#ebd5ab'
+      this.themeInitialized = true;
+    }
+
+    // 🔥 IMPORTANT — Apply theme AFTER small delay
+    setTimeout(() => {
+      monaco.editor.setTheme('logithm-theme');
+    }, 0);
   }
-});
-
-    this.themeInitialized = true;
-  }
-
-  // 🔥 IMPORTANT — Apply theme AFTER small delay
-  setTimeout(() => {
-    monaco.editor.setTheme('logithm-theme');
-  }, 0);
-}
 
   runTest(): void {
     const activeTest = this.testCases[this.selectedCase - 1];

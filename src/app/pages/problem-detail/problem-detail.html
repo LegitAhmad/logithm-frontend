@@ -24,55 +24,35 @@
     <div class="lg:col-span-8 flex flex-col gap-4 h-full overflow-hidden">
 
       <!-- ================= CODE EDITOR ================= -->
-      <section
-        class="flex-[1.5] bg-bg1/20 backdrop-blur-xl rounded-2xl border border-white/5 flex flex-col shadow-xl">
+      <section class="flex-[2] bg-[#171a1b]/15 rounded-2xl border border-white/10 flex flex-col shadow-xl overflow-hidden">
 
-        <div class="px-4 py-2 border-b border-white/10">
+        <div class="px-4 py-3 border-b border-white/10 bg-bg1/15 shrink-0">
           <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
             Code Editor
           </span>
         </div>
 
-        <div class="h-[360px] flex-1 bg-[#171a1b]">
+        <div class="flex-1 min-h-0 relative">
           @if (isBrowser) {
-          <ngx-monaco-editor
-            class="h-full w-full"
-            [options]="editorOptions"
-            [(ngModel)]="code"
+          <ngx-monaco-editor class="absolute inset-0 h-full w-full" [options]="editorOptions" [(ngModel)]="code"
             (onInit)="onEditorInit($event)">
           </ngx-monaco-editor>
           }
         </div>
 
-        <!-- Buttons -->
-        <div class="p-3 flex justify-between items-center bg-[#171a1b] border-t border-white/5">
-
-          <span class="text-[9px] text-gray-500 uppercase">
-            Ready to test
-          </span>
-
+        <div class="p-3 flex justify-between items-center bg-black/10 border-t border-white/10 shrink-0">
+          <span class="text-[9px] text-gray-500 uppercase">Ready to test</span>
           <div class="flex gap-2">
-
-            <button
-              (click)="runTest()"
-              class="text-gray-300 hover:text-white px-3 py-1.5 text-xs font-medium rounded-lg cursor-pointer">
-              Run
-            </button>
-
-            <button
-              (click)="submitCode()"
-              class="bg-primary hover:bg-primary/80 px-4 py-1.5 rounded-lg text-black text-xs font-semibold shadow-md cursor-pointer">
-              Submit
-            </button>
-
+            <button (click)="runTest()"
+              class="text-gray-300 hover:text-white px-3 py-1.5 text-xs font-medium rounded-lg">Run</button>
+            <button (click)="submitCode()"
+              class="bg-primary hover:brightness-110 px-4 py-1.5 rounded-lg text-black text-xs font-bold shadow-md">Submit</button>
           </div>
         </div>
-
       </section>
 
       <!-- ================= RESULTS ================= -->
-      <section
-        class="flex-1 bg-bg1/15 rounded-2xl border border-white/5 flex flex-col overflow-hidden shadow-xl">
+      <section class="flex-1 bg-bg1/15 rounded-2xl border border-white/5 flex flex-col overflow-hidden shadow-xl">
 
         <div class="px-4 py-2 border-b border-white/10">
           <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">
@@ -87,9 +67,7 @@
 
             @for (test of testCases; track test.id) {
 
-            <button
-              (click)="selectedCase = test.id"
-              [class.bg-primary/20]="selectedCase === test.id"
+            <button (click)="selectedCase = test.id" [class.bg-primary/20]="selectedCase === test.id"
               [class.text-primary]="selectedCase === test.id"
               class="bg-white/5 text-gray-400 px-2.5 py-1 text-[10px] rounded-md font-medium hover:bg-white/10 border border-white/5 transition-all cursor-pointer">
 
