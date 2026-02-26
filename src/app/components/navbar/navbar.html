@@ -1,6 +1,11 @@
+@if (isProfileMenuOpen()) {
+  <div class="pointer-events-none fixed inset-0 z-900 bg-black/35"></div>
+}
+
 <nav
   class="flex items-center justify-between px-6 md:px-12 py-5 bg-white/4 left-10 my-8 right-10 rounded-xl backdrop-blur-md fixed z-1000"
 >
+
   <div class="flex items-center gap-3 cursor-pointer">
     <div
       class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/10 group-hover:rotate-12 transition-transform"
@@ -16,7 +21,7 @@
   </div>
 
   <div class="flex font-semibold items-center gap-4">
-    @if (!isLoggedIn) {
+    @if (!isLoggedIn()) {
       <div class="flex items-center gap-2">
         <a
           routerLink="/login"
@@ -40,9 +45,13 @@
           Logout
         </button>
 
-        <div class="relative group">
+        <div
+          class="relative z-10"
+          (mouseenter)="openProfileMenu()"
+          (mouseleave)="scheduleCloseProfileMenu()"
+        >
           <img
-            [src]="user?.avatarUrl || '/defaultPfp.webp'"
+            [src]="user()?.avatarUrl || '/defaultPfp.webp'"
             alt="Profile"
             class="w-10 h-10 rounded-full border-2 border-primary/50 hover:border-primary cursor-pointer object-cover transition-all"
           />
@@ -51,3 +60,35 @@
     }
   </div>
 </nav>
+
+@if (isProfileMenuOpen()) {
+  <div
+    class="fixed inset-0 z-900 bg-black/35"
+    aria-hidden="true"
+    (click)="closeProfileMenu()"
+  ></div>
+
+  <div
+    role="menu"
+    class="fixed right-10 top-28 z-1001 w-56 rounded-xl border border-white/10 bg-bg2 p-2 shadow-2xl"
+    (mouseenter)="openProfileMenu()"
+    (mouseleave)="scheduleCloseProfileMenu()"
+  >
+    <a
+      routerLink="/settings"
+      role="menuitem"
+      class="block rounded-lg px-3 py-2 text-sm text-white/90 hover:bg-bg3"
+      (click)="closeProfileMenu()"
+    >
+      Settings
+    </a>
+    <button
+      type="button"
+      role="menuitem"
+      class="block w-full cursor-pointer rounded-lg px-3 py-2 text-left text-sm text-red-300 hover:bg-bg3"
+      (click)="onLogout()"
+    >
+      Log Out
+    </button>
+  </div>
+}

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
-import { Inject, Injectable, PLATFORM_ID, effect, inject, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Injectable, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
+import { Observable, map, tap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
@@ -26,21 +26,33 @@ export interface SignupPayload {
 }
 
 export interface User {
+  username?: string;
   firstName: string;
   lastName: string;
   email: string;
   avatarUrl?: string;
+  favoriteCourses?: Array<string | { _id: string }>;
+  favoriteCourseIds?: string[];
+  favorites?: Array<string | { _id: string }>;
+}
+
+type UserResponse = User | { user: User };
+
+export interface UpdateUserPayload {
+  username?: string;
+  firstName: string;
+  lastName: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly platformId = inject(PLATFORM_ID);
-  readonly isAuthenticated = signal(!!this.getAccessToken());
 
   readonly accessToken = signal<string | null>(this.getInitialToken(ACCESS_TOKEN_KEY));
   readonly refreshToken = signal<string | null>(this.getInitialToken(REFRESH_TOKEN_KEY));
-  readonly user = signal<User | null>(null); // Populate this on login or "me" endpoint
+  readonly user = signal<User | null>(null);
+  readonly isAuthenticated = computed(() => !!this.accessToken());
 
   constructor() {
     // 3. Sync Signals to LocalStorage automatically
@@ -80,6 +92,36 @@ export class AuthService {
       .pipe(tap((tokens) => this.setSession(tokens)));
   }
 
+  fetchCurrentUser(): Observable<User> {
+    return this.http
+      .get<UserResponse>(`${environment.apiBaseUrl}/users/me`)
+      .pipe(
+        map((response) => this.resolveUser(response)),
+        tap((user) => this.user.set(user)),
+      );
+  }
+
+  updateProfile(payload: UpdateUserPayload): Observable<User> {
+    return this.http
+      .patch<UserResponse>(`${environment.apiBaseUrl}/users/me`, payload)
+      .pipe(
+        map((response) => this.resolveUser(response)),
+        tap((user) => this.user.set(user)),
+      );
+  }
+
+  uploadAvatar(file: File): Observable<User> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return this.http
+      .patch<UserResponse>(`${environment.apiBaseUrl}/users/me/avatar`, formData)
+      .pipe(
+        map((response) => this.resolveUser(response)),
+        tap((user) => this.user.set(user)),
+      );
+  }
+
   refreshAccessToken(): Observable<AuthTokens> {
     const refreshToken = this.getRefreshToken();
     return this.http.post<AuthTokens>(`${environment.apiBaseUrl}/auth/refresh`, {
@@ -88,16 +130,14 @@ export class AuthService {
   }
 
   storeTokens(tokens: AuthTokens): void {
-    if (isPlatformBrowser(this.platformId)) {
-      localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
-      localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
-    }
+    this.setSession(tokens);
   }
 
   getAccessToken(): string | null {
     if (isPlatformBrowser(this.platformId)) {
       return localStorage.getItem(ACCESS_TOKEN_KEY);
     }
+    console.log('got null');
     return null;
   }
 
@@ -118,5 +158,13 @@ export class AuthService {
 
   logout(): void {
     this.clearTokens();
+  }
+
+  private resolveUser(response: UserResponse): User {
+    if ('user' in response) {
+      return response.user;
+    }
+
+    return response;
   }
 }
