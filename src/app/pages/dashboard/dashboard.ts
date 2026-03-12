@@ -1,15 +1,25 @@
 import { Component } from '@angular/core';
 import { Navbar } from '../../components/navbar/navbar';
 import { RouterLink } from "@angular/router";
+import { CourseCreationModal } from '../course-creation-modal/course-creation-modal';
+
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   templateUrl: './dashboard.html',
-  imports: [Navbar, RouterLink]
+  imports: [Navbar, RouterLink,CourseCreationModal]
 })
 
 export class Dashboard {
+  isModalOpen: boolean = false;
+  openAddCoursePopup() {
+  this.isModalOpen = true;
+}
+
+closeModal() {
+  this.isModalOpen = false;
+}
   courses = [
     { name: 'Programming Fundamentals', professor: 'Prof Samyan Wahla',isFavorite:false },
     { name: 'Object Oriented Programming', professor: 'Prof Nauman Shaffi',isFavorite:false },
