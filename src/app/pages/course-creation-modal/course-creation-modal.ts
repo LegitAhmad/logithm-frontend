@@ -10,21 +10,59 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './course-creation-modal.css',
 })
 export class CourseCreationModal {
-@Output() close = new EventEmitter<void>();
-
+  @Output() close = new EventEmitter<void>();
+  
   searchQuery = signal('');
   startDate = signal('');
   endDate = signal('');
+  selectedPeople = signal<any[]>([]);
   
-  // Example data for the search dropdown
+  // Track the highlighted index for keyboard navigation
+  activeSelectionIndex = signal(0);
+
   availableUsers = [
-    { email: 'nazeefulhaq@gmail.com', initial: 'A' },
-    { email: 'samyan@logithm.com', initial: 'S' }
+    { email: 'nazeefulhaq@gmail.com', initial: 'N' },
+    { email: 'samyan@logithm.com', initial: 'S' },
+    { email: 'affan@uet.edu.pk', initial: 'A' }
   ];
 
-  selectedPeople = signal([
-    { email: 'nazeefulhaq@gmail.com', role: 'TA', initial: 'A' }
-  ]);
+  filteredSuggestions = computed(() => {
+    const query = this.searchQuery().toLowerCase().trim();
+    if (!query) return [];
+    return this.availableUsers.filter(user => 
+      user.email.toLowerCase().includes(query) && 
+      !this.selectedPeople().some(p => p.email === user.email)
+    );
+  });
+
+  // Handle Keyboard Events: Up, Down, Enter, Backspace
+  handleKeyboard(event: KeyboardEvent) {
+    const suggestions = this.filteredSuggestions();
+    
+    if (event.key === 'ArrowDown') {
+      this.activeSelectionIndex.update(i => (i + 1) % suggestions.length);
+    } 
+    else if (event.key === 'ArrowUp') {
+      this.activeSelectionIndex.update(i => (i - 1 + suggestions.length) % suggestions.length);
+    } 
+    else if (event.key === 'Enter' && suggestions.length > 0) {
+      this.selectUser(suggestions[this.activeSelectionIndex()]);
+    } 
+    else if (event.key === 'Backspace' && this.searchQuery() === '' && this.selectedPeople().length > 0) {
+      // Deletes the last person if the input is empty
+      this.selectedPeople.update(prev => prev.slice(0, -1));
+    }
+  }
+
+  selectUser(user: any) {
+    this.selectedPeople.update(prev => [...prev, user]);
+    this.searchQuery.set('');
+    this.activeSelectionIndex.set(0);
+  }
+
+  removeUser(email: string) {
+    this.selectedPeople.update(prev => prev.filter(u => u.email !== email));
+  }
 
   duration = computed(() => {
     if (!this.startDate() || !this.endDate()) return '0 months';
@@ -33,17 +71,6 @@ export class CourseCreationModal {
     const diff = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
     return `${diff} months`;
   });
-
-  addPerson(user: any) {
-    if (!this.selectedPeople().find(p => p.email === user.email)) {
-      this.selectedPeople.update(p => [...p, { ...user, role: 'Viewer' }]);
-    }
-    this.searchQuery.set('');
-  }
-
-  removePerson(email: string) {
-    this.selectedPeople.update(p => p.filter(item => item.email !== email));
-  }
 
   onCancel() { this.close.emit(); }
 }

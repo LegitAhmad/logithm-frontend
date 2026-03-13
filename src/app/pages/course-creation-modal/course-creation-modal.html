@@ -1,92 +1,87 @@
-<div class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-md p-4 overflow-hidden" (click)="onCancel()">
+<div class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-xl p-4 md:p-8" (click)="onCancel()">
   
-  <div class="w-full max-w-5xl bg-card border border-white/5 rounded-[2rem] p-8 shadow-2xl relative flex flex-col max-h-[90vh]" (click)="$event.stopPropagation()">
+  <div class="w-full max-w-5xl max-h-[92vh] bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative flex flex-col animate-in fade-in duration-500" (click)="$event.stopPropagation()">
     
-    <div class="mb-6 flex flex-col gap-1">
-      <h2 class="text-primary text-2xl font-bold tracking-tight">Create New Course</h2>
-      <p class="text-gray-500 text-[9px] uppercase tracking-[0.3em] font-bold">Academic Management</p>
+    <div class="mb-6">
+      <h2 class="text-primary text-3xl font-extrabold tracking-tight">Create New Course</h2>
+      <p class="text-white/30 text-[11px] uppercase tracking-[0.4em] font-bold mt-1">Academic Management System</p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6 overflow-y-auto custom-scrollbar pr-2 flex-1">
+    <div class="grid grid-cols-1 md:grid-cols-10 gap-8 items-start flex-1">
       
-      <div class="space-y-1.5">
-        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Course Name</label>
-        <input type="text" placeholder="e.g. Programming Fundamentals"
-          class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary/50 hover:border-primary/50 transition-all shadow-inner" />
-      </div>
+      <div class="md:col-span-6 space-y-6">
+        <div class="grid grid-cols-1 gap-5">
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">Course Name</label>
+            <input type="text" placeholder="e.g. Programming Fundamentals"
+              class="w-full bg-bg1 border border-white/10 rounded-2xl px-6 py-3 text-sm text-white focus:outline-none focus:border-primary/50 transition-all shadow-inner" />
+          </div>
 
-      <div class="space-y-1.5">
-        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Instructor Name</label>
-        <input type="text" placeholder="e.g. Samyan Wahla"
-          class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-primary/50  hover:border-primary/50 transition-all shadow-inner" />
-      </div>
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">Instructor Name</label>
+            <input type="text" placeholder="e.g. Samyan Wahla"
+              class="w-full bg-bg1 border border-white/10 rounded-2xl px-6 py-3 text-sm text-white focus:outline-none focus:border-primary/50 transition-all shadow-inner" />
+          </div>
+        </div>
 
-      <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8 bg-bg4/30 rounded-2xl p-5 border border-white/5">
-        
-        <div class="space-y-3">
-          <label class="text-[10px] font-bold text-primary uppercase tracking-widest">Search Access</label>
-          <div class="relative">
-            <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" placeholder="Enter email..."
-              class="w-full bg-bg1 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-xs text-white focus:border-primary/50 hover:border-primary/50">
-            <svg class="absolute left-3.5 top-3 w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <div class="space-y-2">
+          <label class="text-[10px] font-bold text-primary uppercase tracking-widest ml-1">Share Access</label>
+          <div class="min-h-[120px] w-full bg-bg1 border border-white/10 rounded-[2rem] p-4 focus-within:border-primary/50 transition-all flex flex-wrap gap-2.5 content-start relative shadow-inner">
             
-            @if (searchQuery().length > 0) {
-              <div class="absolute w-full mt-2 bg-card border border-white/10 rounded-xl shadow-2xl z-10 overflow-hidden">
-                @for (user of availableUsers; track user.email) {
-                  <div (click)="addPerson(user)" class="p-3 hover:bg-white/5 flex items-center gap-3 cursor-pointer border-b border-white/5 last:border-0">
-                    <div class="w-7 h-7 bg-primary/20 text-primary rounded-lg flex items-center justify-center font-bold text-[10px]">{{user.initial}}</div>
-                    <span class="text-[11px] text-gray-300">{{user.email}}</span>
-                  </div>
+            @for (person of selectedPeople(); track person.email) {
+              <div class="flex items-center gap-2 bg-primary/10 border border-primary/20 pl-2 pr-3 py-1 rounded-full animate-in zoom-in">
+                <div class="w-5 h-5 bg-primary/20 rounded-full flex items-center justify-center text-[9px] font-bold text-primary">{{ person.initial }}</div>
+                <span class="text-xs text-primary font-medium">{{ person.email }}</span>
+                <button (click)="removeUser(person.email)" class="text-primary/40 hover:text-primary transition-colors cursor-pointer">&times;</button>
+              </div>
+            }
+
+            <input type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" (keydown)="handleKeyboard($event)"
+              placeholder="Search email..."
+              class="flex-1 bg-transparent border-none outline-none text-sm text-white min-w-[120px] py-1 placeholder:text-white/20" />
+
+            @if (filteredSuggestions().length > 0) {
+              <div class="absolute left-0 top-[102%] w-full bg-[#161616] border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-[100] py-1 animate-in slide-in-from-top-2 duration-300 backdrop-blur-3xl">
+                @for (user of filteredSuggestions(); track user.email; let i = $index) {
+                  <button (click)="selectUser(user)" 
+                    [class.bg-white/10]="i === activeSelectionIndex()"
+                    class="w-full px-5 py-3 flex items-center gap-4 hover:bg-white/5 text-left transition-colors">
+                    <div class="w-7 h-7 bg-white/10 rounded-lg flex items-center justify-center font-bold text-primary text-xs">{{ user.initial }}</div>
+                    <span class="text-sm text-white">{{ user.email }}</span>
+                  </button>
                 }
               </div>
             }
           </div>
         </div>
-
-        <div class="space-y-3">
-          <label class="text-[10px] font-bold text-primary uppercase tracking-widest">Access Control</label>
-          <div class="space-y-2">
-            @for (person of selectedPeople(); track person.email) {
-              <div class="flex items-center justify-between bg-bg1 p-2.5 rounded-xl border border-white/5 ">
-                <div class="flex items-center gap-3">
-                  <div class="w-7 h-7 bg-primary/20 text-primary rounded-lg flex items-center justify-center font-bold text-[10px]">{{ person.initial }}</div>
-                  <span class="text-[12px] text-gray-400 font-mono">{{ person.email }}</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <select class="bg-bg3 text-[10px] font-bold text-primary uppercase px-2 py-1 rounded border-none outline-none cursor-pointer">
-                    <option>TA</option><option>Instructor</option><option>Viewer</option>
-                  </select>
-                  <button (click)="removePerson(person.email)" class="text-gray-500 hover:text-red-400 px-1 transition-colors cursor-pointer">&times;</button>
-                </div>
-              </div>
-            }
-          </div>
-        </div>
       </div>
 
-      <div class="grid grid-cols-3 md:col-span-2 gap-6 items-end">
-        <div class="space-y-1.5">
-          <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Start Date</label>
-          <input type="date" (change)="startDate.set($any($event.target).value)"
-            class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-primary/50 outline-none  hover:border-primary/50" />
+      <div class="md:col-span-4 bg-white/[0.03] p-7 rounded-[2.5rem] border border-white/10 flex flex-col justify-between shadow-xl">
+        <div class="space-y-5">
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">Start Date</label>
+            <input type="date" (change)="startDate.set($any($event.target).value)"
+              class="w-full bg-bg1 border border-white/10 rounded-xl px-5 py-2.5 text-xs text-white focus:border-primary/40 outline-none appearance-none" />
+          </div>
+          <div class="space-y-1.5">
+            <label class="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">End Date</label>
+            <input type="date" (change)="endDate.set($any($event.target).value)"
+              class="w-full bg-bg1 border border-white/10 rounded-xl px-5 py-2.5 text-xs text-white focus:border-primary/40 outline-none appearance-none" />
+          </div>
         </div>
-        <div class="space-y-1.5">
-          <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">End Date</label>
-          <input type="date" (change)="endDate.set($any($event.target).value)"
-            class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-primary/50 outline-none  hover:border-primary/50" />
-        </div>
-        <div class="space-y-1.5">
-          <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Duration</label>
-          <div class="w-full bg-bg1 border border-white/10 rounded-xl px-4 py-2.5 text-[11px] text-primary font-bold text-center">
+
+        <div class="bg-primary/[0.03] border border-primary/20 rounded-2xl p-5 text-center mt-4">
+          <label class="text-[9px] font-bold text-white/20 uppercase tracking-[0.2em] mb-1 block">Duration</label>
+          <div class="text-primary text-2xl font-black tracking-tighter">
              {{ duration() }}
           </div>
         </div>
       </div>
     </div>
 
-    <div class="mt-8 flex justify-end gap-3 pt-6 border-t border-white/5">
-      <button (click)="onCancel()" class="px-6 py-2.5 text-[11px] font-bold text-gray-500 hover:text-white transition-all uppercase tracking-widest cursor-pointer">Cancel</button>
-      <button class="px-8 py-2.5 rounded-full bg-primary text-bg1 text-[11px] font-extrabold uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all shadow-lg shadow-primary/20 cursor-pointer">
+    <div class="mt-8 flex justify-end gap-5 pt-6 border-t border-white/5 shrink-0">
+      <button (click)="onCancel()" class="px-8 py-3 text-xs font-bold text-white/30 hover:text-white transition-all uppercase tracking-widest cursor-pointer">Cancel</button>
+      <button class="px-10 py-3.5 rounded-full bg-primary text-bg1 text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 cursor-pointer">
         Create Course
       </button>
     </div>
