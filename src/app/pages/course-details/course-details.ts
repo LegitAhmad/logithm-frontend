@@ -1,14 +1,23 @@
 import { Component } from '@angular/core';
 import { Navbar } from '../../components/navbar/navbar';
 import { RouterLink } from "@angular/router";
+import { AssignmentCreationModal } from '../assignment-creation-modal/assignment-creation-modal';
 
 @Component({
   selector: 'app-course-details',
-  imports: [Navbar, RouterLink],
+  imports: [Navbar, RouterLink,AssignmentCreationModal],
   templateUrl: './course-details.html',
   styleUrl: './course-details.css',
 })
 export class CourseDetails {
+    isModalOpen: boolean = false;
+  openAddAssignmentPopup() {
+  this.isModalOpen = true;
+}
+
+closeModal() {
+  this.isModalOpen = false;
+}
   isHovered = false;
 
   assignments = [

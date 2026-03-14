@@ -1,0 +1,22 @@
+/* Clean, Inset Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  /* Adds space at top and bottom of the scrollbar track */
+  margin-block: 15px; 
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(235, 213, 171, 0.2);
+  border-radius: 10px;
+  /* Create an inset effect so it doesn't touch the side */
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(235, 213, 171, 0.4);
+}

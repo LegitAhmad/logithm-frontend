@@ -23,6 +23,9 @@ export class CourseCreationModal {
   availableUsers = [
     { email: 'nazeefulhaq@gmail.com', initial: 'N' },
     { email: 'samyan@logithm.com', initial: 'S' },
+    { email: 'abdullah@logithm.com', initial: 'S' },
+    { email: 'anas@logithm.com', initial: 'S' },
+    { email: 'ahmed@logithm.com', initial: 'S' },
     { email: 'affan@uet.edu.pk', initial: 'A' }
   ];
 
