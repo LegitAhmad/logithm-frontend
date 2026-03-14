@@ -8,10 +8,8 @@
             <section class="bg-bg1/15 rounded-3xl p-4 shrink-0 border border-white/5">
                 <div class="flex gap-3 overflow-x-auto pb-2 custom-scrollbar no-scrollbar">
                     @for (cat of categories; track cat) {
-                    <button (click)="setCategory(cat)" 
-                        [class.bg-primary]="selectedCategory === cat"
-                        [class.text-black]="selectedCategory === cat" 
-                        [class.bg-white/5]="selectedCategory !== cat"
+                    <button (click)="setCategory(cat)" [class.bg-primary]="selectedCategory === cat"
+                        [class.text-black]="selectedCategory === cat" [class.bg-white/5]="selectedCategory !== cat"
                         [class.text-gray-400]="selectedCategory !== cat"
                         class="px-4 py-1 text-sm font-medium rounded-full transition-all cursor-pointer">
                         {{ cat }}
@@ -30,7 +28,8 @@
                                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                             </svg>
                         </div>
-                        <select class="bg-white/5 border border-white/10 rounded-lg py-1.5 px-3 text-xs text-gray-400 focus:outline-none cursor-pointer">
+                        <select
+                            class="bg-white/5 border border-white/10 rounded-lg py-1.5 px-3 text-xs text-gray-400 focus:outline-none cursor-pointer">
                             <option>Difficulty</option>
                             <option>Easy</option>
                             <option>Medium</option>
@@ -39,7 +38,8 @@
                     </div>
 
                     <div class="text-xs text-gray-400">
-                        Solved: <span class="text-primary font-bold">{{ stats.totalSolved }}</span> / {{ stats.totalQuestions }}
+                        Solved: <span class="text-primary font-bold">{{ stats.totalSolved }}</span> / {{
+                        stats.totalQuestions }}
                     </div>
                 </div>
             </section>
@@ -54,40 +54,45 @@
 
                 <div class="space-y-3 overflow-y-auto pr-2 custom-scrollbar flex-1">
                     @for (q of filteredQuestions; track q.id) {
-                    <div class="grid grid-cols-12 items-center bg-primary/5 hover:bg-bg3 border border-white/5 rounded-2xl p-4 transition-all cursor-pointer group shadow-[0_5px_3px_rgba(0,0,0,0.5)]">
-                        <div class="col-span-1 flex justify-start">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-opacity duration-300"
-                                [class]="getStatusColor(q.status)" viewBox="0 0 20 20" fill="currentColor">
-                                <path fill-rule="evenodd"
-                                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                    clip-rule="evenodd" />
-                            </svg>
-                        </div>
+                    <div routerLink="/problem-detail">
+                        <div
+                            class="grid grid-cols-12 items-center bg-primary/5 hover:bg-bg3 border border-white/5 rounded-2xl p-4 transition-all cursor-pointer group shadow-[0_5px_3px_rgba(0,0,0,0.5)]">
+                            <div class="col-span-1 flex justify-start">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-opacity duration-300"
+                                    [class]="getStatusColor(q.status)" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
 
-                        <div class="col-span-7">
-                            <h3 class="text-md font-medium text-gray-200 group-hover:text-white transition-colors truncate">
-                                {{ q.id }}. {{ q.text }}
-                            </h3>
-                        </div>
+                            <div class="col-span-7">
+                                <h3
+                                    class="text-md font-medium text-gray-200 group-hover:text-white transition-colors truncate">
+                                    {{ q.id }}. {{ q.text }}
+                                </h3>
+                            </div>
 
-                        <div class="col-span-2 text-center text-xs text-gray-400 font-medium">
-                            {{ q.acceptance }}
-                        </div>
+                            <div class="col-span-2 text-center text-xs text-gray-400 font-medium">
+                                {{ q.acceptance }}
+                            </div>
 
-                        <div class="col-span-2 text-right">
-                            <span class="text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider"
-                                [class.text-green-400]="q.difficulty === 'Easy'"
-                                [class.bg-green-400/10]="q.difficulty === 'Easy'"
-                                [class.text-yellow-500]="q.difficulty === 'Medium'"
-                                [class.bg-yellow-500/10]="q.difficulty === 'Medium'"
-                                [class.text-red-400]="q.difficulty === 'Hard'"
-                                [class.bg-red-400/10]="q.difficulty === 'Hard'">
-                                {{ q.difficulty }}
-                            </span>
+                            <div class="col-span-2 text-right">
+                                <span class="text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider"
+                                    [class.text-green-400]="q.difficulty === 'Easy'"
+                                    [class.bg-green-400/10]="q.difficulty === 'Easy'"
+                                    [class.text-yellow-500]="q.difficulty === 'Medium'"
+                                    [class.bg-yellow-500/10]="q.difficulty === 'Medium'"
+                                    [class.text-red-400]="q.difficulty === 'Hard'"
+                                    [class.bg-red-400/10]="q.difficulty === 'Hard'">
+                                    {{ q.difficulty }}
+                                </span>
+                            </div>
                         </div>
                     </div>
                     } @empty {
-                    <div class="text-center py-10 text-gray-500 text-sm italic">No questions found for this category.</div>
+                    <div class="text-center py-10 text-gray-500 text-sm italic">No questions found for this category.
+                    </div>
                     }
                 </div>
             </section>
@@ -96,7 +101,8 @@
         <div class="hidden lg:flex flex-col gap-6 h-full overflow-hidden">
 
             <section class="bg-bg1/15 rounded-3xl p-6 flex flex-col items-center border border-white/5 shadow-lg">
-                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6 self-start">Solved Statistics</h2>
+                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6 self-start">Solved Statistics
+                </h2>
 
                 <div class="relative w-36 h-36 flex items-center justify-center mb-6">
                     <svg class="absolute w-full h-full -rotate-90" viewBox="0 0 192 192">

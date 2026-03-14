@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Required for @for, @if, and [style.width]
 import { Navbar } from '../../components/navbar/navbar';
+import { RouterLink } from "@angular/router";
 
 interface Question {
   id: number;
@@ -14,7 +15,7 @@ interface Question {
 @Component({
   selector: 'app-assignment',
   standalone: true, // Assuming standalone based on previous context
-  imports: [Navbar, CommonModule],
+  imports: [Navbar, CommonModule, RouterLink],
   templateUrl: './assignment.html',
   styleUrl: './assignment.css',
 })
