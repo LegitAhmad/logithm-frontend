@@ -1,9 +1,10 @@
 import { Component, EventEmitter, Output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from "@angular/router";
 
 @Component({
   selector: 'app-problem-creation-modal',
-  imports: [FormsModule],
+  imports: [FormsModule, RouterLink],
   templateUrl: './problem-creation-modal.html',
   styleUrl: './problem-creation-modal.css',
 })

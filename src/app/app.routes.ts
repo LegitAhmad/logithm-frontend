@@ -7,6 +7,7 @@ import { Dashboard } from './pages/dashboard/dashboard';
 import { CourseDetails } from './pages/course-details/course-details';
 import { Assignment } from './pages/assignment/assignment';
 import { ProblemDetail } from './pages/problem-detail/problem-detail';
+import { ProblemCreationPage } from './pages/problem-creation-page/problem-creation-page';
 
 export const routes: Routes = [
   {
@@ -47,5 +48,10 @@ export const routes: Routes = [
     path: 'problem-detail',
     title: 'Problem Detail',
     component: ProblemDetail,
+  },
+  {
+    path: 'problem-creation',
+    title: 'Create Problem',
+    component: ProblemCreationPage,
   },
 ];
