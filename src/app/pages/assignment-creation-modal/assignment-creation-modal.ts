@@ -7,20 +7,18 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './assignment-creation-modal.css',
 })
 export class AssignmentCreationModal {
-@Output() close = new EventEmitter<void>();
+  @Output() close = new EventEmitter<void>();
 
   assignmentName = signal('');
-  dueDate = signal('');
 
   onCancel() {
     this.close.emit();
   }
 
   onCreate() {
-    console.log('Creating Assignment:', {
-      name: this.assignmentName(),
-      due: this.dueDate()
-    });
-    this.close.emit();
+    if (this.assignmentName().trim()) {
+      console.log('Assignment logic triggered:', this.assignmentName());
+      this.close.emit();
+    }
   }
 }

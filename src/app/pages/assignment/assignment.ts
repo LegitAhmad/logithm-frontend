@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common'; // Required for @for, @if, and [style.width]
 import { Navbar } from '../../components/navbar/navbar';
 import { RouterLink } from "@angular/router";
+import { ProblemCreationModal } from '../problem-creation-modal/problem-creation-modal';
 
 interface Question {
   id: number;
@@ -15,11 +16,21 @@ interface Question {
 @Component({
   selector: 'app-assignment',
   standalone: true, // Assuming standalone based on previous context
-  imports: [Navbar, CommonModule, RouterLink],
+  imports: [Navbar, CommonModule, RouterLink,ProblemCreationModal],
   templateUrl: './assignment.html',
   styleUrl: './assignment.css',
 })
 export class Assignment {
+
+  isModalOpen: boolean = false;
+  openAddProblemPopup() {
+  this.isModalOpen = true;
+}
+
+closeModal() {
+  this.isModalOpen = false;
+}
+
   isHovered = false;
   selectedCategory = 'All Topics';
 
