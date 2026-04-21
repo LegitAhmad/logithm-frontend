@@ -1,0 +1,12 @@
+/* Force the Monaco container to be transparent so the parent's color shows through */
+:host ::ng-deep .monaco-editor,
+:host ::ng-deep .monaco-editor .margin,
+:host ::ng-deep .monaco-editor-background {
+  background-color: transparent !important;
+}
+
+/* Fix the squashed editor issue */
+ngx-monaco-editor {
+  height: 100% !important;
+  width: 100% !important;
+}

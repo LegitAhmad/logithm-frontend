@@ -6,6 +6,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { catchError, forkJoin, of, switchMap } from 'rxjs';
 import { AuthService, User as AuthUser } from '../../services/auth.service';
 import { Assignment, AssignmentsService } from '../../services/assignments.service';
+import { CourseCreationModal } from '../course-creation-modal/course-creation-modal';
 
 type AssignmentTask = {
   id: string;
@@ -19,12 +20,13 @@ type AssignmentGroup = {
   tasks: AssignmentTask[];
 };
 
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   templateUrl: './dashboard.html',
-  imports: [Navbar, RouterLink],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [Navbar, RouterLink,CourseCreationModal],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class Dashboard implements OnInit {
   private coursesService = inject(CoursesService);
@@ -208,6 +210,36 @@ export class Dashboard implements OnInit {
 
     if (assignment.dueDate) {
       return assignment.dueDate;
+    }
+  }
+}
+export class Dashboard {
+  isModalOpen: boolean = false;
+  openAddCoursePopup() {
+  this.isModalOpen = true;
+}
+
+closeModal() {
+  this.isModalOpen = false;
+}
+  courses = [
+    { name: 'Programming Fundamentals', professor: 'Prof Samyan Wahla',isFavorite:false },
+    { name: 'Object Oriented Programming', professor: 'Prof Nauman Shaffi',isFavorite:false },
+    { name: 'Database Design', professor: 'Prof Samyan Wahla',isFavorite:false },
+    { name: 'Data Structures & Algorithms', professor: 'Prof Nazeef Ul Haq',isFavorite:false }
+  ];
+
+  pending = [
+    {
+      course: 'Programming Fundamentals',
+      tasks: [{ title: 'Submit PD all task', dueTime: '12:00', dueDate: '2/5/2026' }]
+    },
+    {
+      course: 'Data Structures & Algorithms',
+      tasks: [
+        { title: 'Submission of Lab 1', dueTime: '24:00', dueDate: '2/7/2026' },
+        { title: 'Submission of Lab 2', dueTime: '23:00', dueDate: '2/15/2026' }
+      ]
     }
 
     return 'No due date';
