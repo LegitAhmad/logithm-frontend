@@ -14,12 +14,14 @@
           <div class="space-y-1.5 text-left">
             <label class="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">Course Name</label>
             <input type="text" placeholder="e.g. Programming Fundamentals"
+              [ngModel]="courseName()" (ngModelChange)="courseName.set($event)"
               class="w-full bg-bg1 border border-white/10 rounded-2xl px-6 py-3.5 text-sm text-white focus:outline-none focus:border-primary/50 hover:border-primary/50 transition-all shadow-inner" />
           </div>
 
           <div class="space-y-1.5 text-left">
             <label class="text-[10px] font-bold text-white/30 uppercase tracking-widest ml-1">Instructor Name</label>
             <input type="text" placeholder="e.g. Samyan Wahla"
+              [ngModel]="instructorName()" (ngModelChange)="instructorName.set($event)"
               class="w-full bg-bg1 border border-white/10 rounded-2xl px-6 py-3.5 text-sm text-white focus:outline-none focus:border-primary/50 hover:border-primary/50 transition-all shadow-inner" />
           </div>
         </div>
@@ -84,7 +86,7 @@
 
     <div class="mt-8 flex justify-end gap-5 pt-6 border-t border-white/5 shrink-0">
       <button (click)="onCancel()" class="px-8 py-3 text-xs font-bold text-white/30 hover:text-white transition-all uppercase tracking-widest cursor-pointer">Cancel</button>
-      <button class="px-10 py-3.5 rounded-full bg-primary text-bg1 text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 cursor-pointer">
+      <button (click)="onSubmit()" class="px-10 py-3.5 rounded-full bg-primary text-bg1 text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 cursor-pointer">
         Create Course
       </button>
     </div>

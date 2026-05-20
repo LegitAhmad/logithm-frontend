@@ -1,6 +1,7 @@
-import { Component, EventEmitter, Output, signal, computed } from '@angular/core';
+import { Component, EventEmitter, Output, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { CoursesService } from '../../services/courses.service';
 
 @Component({
   selector: 'app-course-creation-modal',
@@ -10,8 +11,13 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './course-creation-modal.css',
 })
 export class CourseCreationModal {
-  @Output() close = new EventEmitter<void>();
+  private coursesService = inject(CoursesService);
   
+  @Output() close = new EventEmitter<void>();
+  @Output() courseCreated = new EventEmitter<any>();
+  
+  courseName = signal('');
+  instructorName = signal('');
   searchQuery = signal('');
   startDate = signal('');
   endDate = signal('');
@@ -74,6 +80,27 @@ export class CourseCreationModal {
     const diff = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
     return `${diff} months`;
   });
+
+  onSubmit() {
+    if (!this.courseName().trim() || !this.startDate() || !this.endDate()) {
+      return;
+    }
+
+    this.coursesService.createCourse({
+      name: this.courseName(),
+      instructorName: this.instructorName(),
+      startDate: this.startDate(),
+      endDate: this.endDate()
+    }).subscribe({
+      next: (course) => {
+        this.courseCreated.emit(course);
+        this.close.emit();
+      },
+      error: (err) => {
+        console.error('Failed to create course', err);
+      }
+    });
+  }
 
   onCancel() { this.close.emit(); }
 }

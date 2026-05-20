@@ -1,12 +1,21 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  PLATFORM_ID,
+  signal
+} from '@angular/core';
 import { Navbar } from '../../components/navbar/navbar';
 import { RouterLink } from '@angular/router';
-import { Course, CoursesService } from '../../services/courses.service';
+import { CourseCreationModal } from '../course-creation-modal/course-creation-modal';
 import { isPlatformBrowser } from '@angular/common';
 import { catchError, forkJoin, of, switchMap } from 'rxjs';
-import { AuthService, User as AuthUser } from '../../services/auth.service';
+
+import { Course, CoursesService } from '../../services/courses.service';
 import { Assignment, AssignmentsService } from '../../services/assignments.service';
-import { CourseCreationModal } from '../course-creation-modal/course-creation-modal';
+import { AuthService, User as AuthUser } from '../../services/auth.service';
 
 type AssignmentTask = {
   id: string;
@@ -20,13 +29,13 @@ type AssignmentGroup = {
   tasks: AssignmentTask[];
 };
 
-
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   templateUrl: './dashboard.html',
-  imports: [Navbar, RouterLink,CourseCreationModal],
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './dashboard.css',
+  imports: [Navbar, RouterLink, CourseCreationModal],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Dashboard implements OnInit {
   private coursesService = inject(CoursesService);
@@ -34,73 +43,116 @@ export class Dashboard implements OnInit {
   private authService = inject(AuthService);
   private pid = inject(PLATFORM_ID);
 
+  // ✅ Modal
+  isModalOpen = false;
+
+  openAddCoursePopup() {
+    this.isModalOpen = true;
+  }
+
+  closeModal() {
+    this.isModalOpen = false;
+  }
+
+  onCourseCreated(course: Course) {
+    console.log('Dashboard: Course created event received:', course);
+    // Add the new course to the list immediately for better UX
+    this.courses.update(current => {
+      const updated = [course, ...current];
+      console.log('Dashboard: Updated courses signal (immediate):', updated);
+      return updated;
+    });
+    // Also trigger a full refresh to get enriched data (like creator name) and assignments
+    this.loadCourses();
+  }
+
+  // ✅ Signals
   courses = signal<Course[]>([]);
   favoriteCourseIds = signal<Set<string>>(new Set());
   pendingAssignments = signal<AssignmentGroup[]>([]);
   missedAssignments = signal<AssignmentGroup[]>([]);
   activeView = signal<'all' | 'favorites'>('all');
+
   displayedCourses = computed(() => {
-    const favoriteCourseIds = this.favoriteCourseIds();
-    const courses = this.courses().map((course) => ({
+    const favorites = this.favoriteCourseIds();
+    const allCourses = this.courses().map(course => ({
       ...course,
-      isFavorite: favoriteCourseIds.has(course._id),
+      isFavorite: favorites.has(course._id)
     }));
 
-    return this.activeView() === 'favorites' ? courses.filter((course) => course.isFavorite) : courses;
+    console.log('Dashboard: Recomputing displayedCourses. Count:', allCourses.length);
+    return this.activeView() === 'favorites'
+      ? allCourses.filter(c => c.isFavorite)
+      : allCourses;
   });
 
   ngOnInit() {
-    if (!isPlatformBrowser(this.pid)) {
-      return;
-    }
+    if (!isPlatformBrowser(this.pid)) return;
 
+    console.log('Dashboard: Initializing...');
     this.loadFavoriteCourses();
     this.loadCourses();
   }
 
-  loadFavoriteCourses() {
+  setActiveView(view: 'all' | 'favorites') {
+    console.log('Dashboard: Setting active view to:', view);
+    this.activeView.set(view);
+  }
+
+  toggleFavorite(course: Course) {
+    const isFav = this.favoriteCourseIds().has(course._id);
+
+    const req = isFav
+      ? this.coursesService.unfavoriteCourse(course._id)
+      : this.coursesService.favoriteCourse(course._id);
+
+    req.subscribe({
+      next: () => {
+        this.favoriteCourseIds.update(set => {
+          const next = new Set(set);
+          isFav ? next.delete(course._id) : next.add(course._id);
+          return next;
+        });
+      },
+      error: (err) => {
+        console.error('Dashboard: Failed to update course favorite state', err);
+      }
+    });
+  }
+
+  loadCourses() {
+    console.log('Dashboard: Loading courses...');
+    this.coursesService.getCourses()
+      .pipe(
+        switchMap(res => {
+          console.log('Dashboard: Raw courses fetched, count:', res.data.length);
+          return this.coursesService.enrichCoursesWithCreators(res.data);
+        })
+      )
+      .subscribe({
+        next: (courses: Course[]) => {
+          console.log('Dashboard: Enriched courses received, count:', courses.length);
+          this.courses.set(courses);
+          this.loadAssignments(courses);
+        },
+        error: (err) => {
+          console.error('Dashboard: Failed to load courses', err);
+        }
+      });
+  }
+
+  private loadFavoriteCourses() {
     this.authService.fetchCurrentUser().subscribe({
       next: (user: AuthUser) => {
         this.favoriteCourseIds.set(this.extractFavoriteCourseIds(user));
       },
       error: (err) => {
         console.error('Failed to load favorite courses from profile', err);
-      },
+      }
     });
   }
 
-  loadCourses() {
-    this.coursesService
-      .getCourses()
-      .pipe(
-        switchMap((response) => this.coursesService.enrichCoursesWithCreators(response.data)),
-      )
-      .subscribe({
-        next: (enrichedCourses: Course[]) => {
-          const favoriteCourseIds = enrichedCourses
-            .filter((course) => course.isFavorite)
-            .map((course) => course._id);
-
-          if (favoriteCourseIds.length > 0) {
-            this.favoriteCourseIds.update((currentFavoriteCourseIds) => {
-              const nextFavoriteCourseIds = new Set(currentFavoriteCourseIds);
-
-              favoriteCourseIds.forEach((courseId) => nextFavoriteCourseIds.add(courseId));
-
-              return nextFavoriteCourseIds;
-            });
-          }
-
-          this.courses.set(enrichedCourses.map(({ isFavorite, ...course }) => course));
-          this.loadAssignments(enrichedCourses);
-        },
-        error: (err) => {
-          console.error('Failed to load courses', err);
-        },
-      });
-  }
-
-  loadAssignments(courses: Course[]) {
+  private loadAssignments(courses: Course[]) {
     if (courses.length === 0) {
       this.pendingAssignments.set([]);
       this.missedAssignments.set([]);
@@ -108,65 +160,56 @@ export class Dashboard implements OnInit {
     }
 
     forkJoin(
-      courses.map((course) =>
+      courses.map(course =>
         forkJoin({
-          pending: this.assignmentsService.getCourseAssignments(course._id, 'pending').pipe(
-            catchError(() => of([])),
-          ),
-          missed: this.assignmentsService.getCourseAssignments(course._id, 'missed').pipe(
-            catchError(() => of([])),
-          ),
-        }),
-      ),
+          pending: this.assignmentsService.getCourseAssignments(course._id, 'pending').pipe(catchError(() => of([]))),
+          missed: this.assignmentsService.getCourseAssignments(course._id, 'missed').pipe(catchError(() => of([])))
+        })
+      )
     ).subscribe({
-      next: (assignmentSets) => {
-        const pendingGroups = assignmentSets
-          .map((assignmentSet, index) => this.toGroup(courses[index], assignmentSet.pending))
-          .filter((group): group is AssignmentGroup => group.tasks.length > 0);
+      next: (results) => {
+        this.pendingAssignments.set(
+          results.map((r, i) => this.toGroup(courses[i], r.pending)).filter(g => g.tasks.length > 0)
+        );
 
-        const missedGroups = assignmentSets
-          .map((assignmentSet, index) => this.toGroup(courses[index], assignmentSet.missed))
-          .filter((group): group is AssignmentGroup => group.tasks.length > 0);
-
-        this.pendingAssignments.set(pendingGroups);
-        this.missedAssignments.set(missedGroups);
+        this.missedAssignments.set(
+          results.map((r, i) => this.toGroup(courses[i], r.missed)).filter(g => g.tasks.length > 0)
+        );
       },
       error: (err) => {
         console.error('Failed to load assignments', err);
         this.pendingAssignments.set([]);
         this.missedAssignments.set([]);
-      },
+      }
     });
   }
 
-  setActiveView(view: 'all' | 'favorites') {
-    this.activeView.set(view);
+  private toGroup(course: Course, assignments: Assignment[]): AssignmentGroup {
+    return {
+      courseId: course._id,
+      courseName: course.name,
+      tasks: assignments.map(a => ({
+        id: a._id,
+        title: a.title ?? a.name ?? 'Untitled assignment',
+        dueLabel: this.formatDueLabel(a)
+      }))
+    };
   }
 
-  toggleFavorite(course: Course) {
-    const isFavorite = this.favoriteCourseIds().has(course._id);
-    const request = isFavorite
-      ? this.coursesService.unfavoriteCourse(course._id)
-      : this.coursesService.favoriteCourse(course._id);
+  private formatDueLabel(assignment: Assignment): string {
+    if (assignment.dueTime && assignment.dueDate) {
+      return `${assignment.dueTime} ${assignment.dueDate}`;
+    }
 
-    request.subscribe({
-      next: () => {
-        this.favoriteCourseIds.update((currentFavoriteCourseIds) => {
-          const nextFavoriteCourseIds = new Set(currentFavoriteCourseIds);
+    if (assignment.dueAt) {
+      return assignment.dueAt;
+    }
 
-          if (isFavorite) {
-            nextFavoriteCourseIds.delete(course._id);
-          } else {
-            nextFavoriteCourseIds.add(course._id);
-          }
+    if (assignment.dueDate) {
+      return assignment.dueDate;
+    }
 
-          return nextFavoriteCourseIds;
-        });
-      },
-      error: (err) => {
-        console.error('Failed to update course favorite state', err);
-      },
-    });
+    return 'No due date';
   }
 
   private extractFavoriteCourseIds(user: AuthUser): Set<string> {
@@ -185,63 +228,5 @@ export class Dashboard implements OnInit {
     }
 
     return favoriteCourseIds;
-  }
-
-  private toGroup(course: Course, assignments: Assignment[]): AssignmentGroup {
-    return {
-      courseId: course._id,
-      courseName: course.name,
-      tasks: assignments.map((assignment) => ({
-        id: assignment._id,
-        title: assignment.title ?? assignment.name ?? 'Untitled assignment',
-        dueLabel: this.formatDueLabel(assignment),
-      })),
-    };
-  }
-
-  private formatDueLabel(assignment: Assignment): string {
-    if (assignment.dueTime && assignment.dueDate) {
-      return `${assignment.dueTime} ${assignment.dueDate}`;
-    }
-
-    if (assignment.dueAt) {
-      return assignment.dueAt;
-    }
-
-    if (assignment.dueDate) {
-      return assignment.dueDate;
-    }
-  }
-}
-export class Dashboard {
-  isModalOpen: boolean = false;
-  openAddCoursePopup() {
-  this.isModalOpen = true;
-}
-
-closeModal() {
-  this.isModalOpen = false;
-}
-  courses = [
-    { name: 'Programming Fundamentals', professor: 'Prof Samyan Wahla',isFavorite:false },
-    { name: 'Object Oriented Programming', professor: 'Prof Nauman Shaffi',isFavorite:false },
-    { name: 'Database Design', professor: 'Prof Samyan Wahla',isFavorite:false },
-    { name: 'Data Structures & Algorithms', professor: 'Prof Nazeef Ul Haq',isFavorite:false }
-  ];
-
-  pending = [
-    {
-      course: 'Programming Fundamentals',
-      tasks: [{ title: 'Submit PD all task', dueTime: '12:00', dueDate: '2/5/2026' }]
-    },
-    {
-      course: 'Data Structures & Algorithms',
-      tasks: [
-        { title: 'Submission of Lab 1', dueTime: '24:00', dueDate: '2/7/2026' },
-        { title: 'Submission of Lab 2', dueTime: '23:00', dueDate: '2/15/2026' }
-      ]
-    }
-
-    return 'No due date';
   }
 }
