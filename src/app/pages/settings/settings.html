@@ -1,0 +1,215 @@
+<div class="min-h-screen bg-dashboard-grad text-white">
+  <app-navbar />
+
+  <main class="px-8 pb-6 pt-32">
+    <section class="mx-auto grid max-w-6xl grid-cols-1 gap-6 lg:grid-cols-[260px_1fr]">
+      <aside class="rounded-3xl border border-white/10 bg-bg2 p-5 shadow-[0_5px_20px_rgba(0,0,0,0.35)]">
+        <h1 class="mb-4 text-xl font-semibold">Settings</h1>
+        <nav aria-label="Settings sections" class="space-y-2">
+          <a class="block rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-black">Profile</a>
+          <button
+            type="button"
+            class="block w-full cursor-not-allowed rounded-xl bg-bg3 px-4 py-3 text-left text-sm text-white/50"
+            aria-disabled="true"
+          >
+            Security (coming soon)
+          </button>
+          <button
+            type="button"
+            class="block w-full cursor-not-allowed rounded-xl bg-bg3 px-4 py-3 text-left text-sm text-white/50"
+            aria-disabled="true"
+          >
+            Notifications (coming soon)
+          </button>
+        </nav>
+      </aside>
+
+      <section class="rounded-3xl border border-white/10 bg-bg2 p-6 shadow-[0_5px_20px_rgba(0,0,0,0.35)]">
+        <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-center gap-4">
+            <div class="h-16 w-16 overflow-hidden rounded-full border border-primary/40 bg-bg3 shadow-[0_5px_16px_rgba(0,0,0,0.35)]">
+              <img
+                [src]="avatarSrc()"
+                alt="Profile photo"
+                class="h-full w-full object-cover"
+              />
+            </div>
+
+            <div>
+              <h2 class="text-2xl font-semibold">Edit Profile</h2>
+              <p class="text-sm text-white/60">Manage your public info and avatar.</p>
+            </div>
+          </div>
+
+          <label class="cursor-pointer rounded-xl bg-bg3 px-3 py-2 text-sm text-white/90 hover:bg-bg3/80">
+            <span>{{ isUploadingAvatar() ? 'Uploading...' : 'Upload Avatar' }}</span>
+            <input
+              type="file"
+              accept="image/*"
+              class="hidden"
+              (change)="onAvatarSelected($event)"
+              [disabled]="isUploadingAvatar()"
+            />
+          </label>
+        </header>
+
+        <div class="space-y-4">
+          <section class="rounded-2xl border border-white/10 bg-bg3/30 p-4">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm text-white/60">Username</p>
+                @if (editingField() === 'username') {
+                  <form [formGroup]="usernameForm" class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <input
+                      type="text"
+                      formControlName="username"
+                      class="w-full rounded-xl border border-white/15 bg-bg2 px-3 py-2 outline-none transition focus:border-primary sm:max-w-sm"
+                    />
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                        [disabled]="isSaving()"
+                        (click)="saveField('username')"
+                      >
+                        {{ isSaving() ? 'Saving...' : 'Save' }}
+                      </button>
+                      <button
+                        type="button"
+                        class="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:bg-bg2"
+                        (click)="cancelEditing()"
+                        [disabled]="isSaving()"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                } @else {
+                  <p class="mt-1 text-lg font-medium text-white">{{ profile()?.username || '—' }}</p>
+                }
+              </div>
+
+              <button
+                type="button"
+                class="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:bg-bg2"
+                (click)="startEditing('username')"
+                [disabled]="editingField() !== null && editingField() !== 'username'"
+              >
+                Edit
+              </button>
+            </div>
+          </section>
+
+          <section class="rounded-2xl border border-white/10 bg-bg3/30 p-4">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm text-white/60">First Name</p>
+                @if (editingField() === 'firstName') {
+                  <form [formGroup]="firstNameForm" class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <input
+                      type="text"
+                      formControlName="firstName"
+                      class="w-full rounded-xl border border-white/15 bg-bg2 px-3 py-2 outline-none transition focus:border-primary sm:max-w-sm"
+                    />
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                        [disabled]="isSaving()"
+                        (click)="saveField('firstName')"
+                      >
+                        {{ isSaving() ? 'Saving...' : 'Save' }}
+                      </button>
+                      <button
+                        type="button"
+                        class="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:bg-bg2"
+                        (click)="cancelEditing()"
+                        [disabled]="isSaving()"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                } @else {
+                  <p class="mt-1 text-lg font-medium text-white">{{ profile()?.firstName || '—' }}</p>
+                }
+              </div>
+
+              <button
+                type="button"
+                class="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:bg-bg2"
+                (click)="startEditing('firstName')"
+                [disabled]="editingField() !== null && editingField() !== 'firstName'"
+              >
+                Edit
+              </button>
+            </div>
+          </section>
+
+          <section class="rounded-2xl border border-white/10 bg-bg3/30 p-4">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm text-white/60">Last Name</p>
+                @if (editingField() === 'lastName') {
+                  <form [formGroup]="lastNameForm" class="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <input
+                      type="text"
+                      formControlName="lastName"
+                      class="w-full rounded-xl border border-white/15 bg-bg2 px-3 py-2 outline-none transition focus:border-primary sm:max-w-sm"
+                    />
+                    <div class="flex items-center gap-2">
+                      <button
+                        type="button"
+                        class="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-black transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                        [disabled]="isSaving()"
+                        (click)="saveField('lastName')"
+                      >
+                        {{ isSaving() ? 'Saving...' : 'Save' }}
+                      </button>
+                      <button
+                        type="button"
+                        class="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:bg-bg2"
+                        (click)="cancelEditing()"
+                        [disabled]="isSaving()"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                } @else {
+                  <p class="mt-1 text-lg font-medium text-white">{{ profile()?.lastName || '—' }}</p>
+                }
+              </div>
+
+              <button
+                type="button"
+                class="rounded-xl border border-white/15 px-4 py-2 text-sm text-white/80 transition hover:bg-bg2"
+                (click)="startEditing('lastName')"
+                [disabled]="editingField() !== null && editingField() !== 'lastName'"
+              >
+                Edit
+              </button>
+            </div>
+          </section>
+
+          <section class="rounded-2xl border border-white/10 bg-bg3/30 p-4">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm text-white/60">Email</p>
+                <p class="mt-1 text-lg font-medium text-white/80">{{ profile()?.email || '—' }}</p>
+              </div>
+
+              <span class="rounded-xl border border-white/10 px-4 py-2 text-sm text-white/50">
+                Read-only
+              </span>
+            </div>
+          </section>
+        </div>
+
+        @if (notice()) {
+          <p class="mt-4 text-sm text-white/90">{{ notice() }}</p>
+        }
+      </section>
+    </section>
+  </main>
+</div>

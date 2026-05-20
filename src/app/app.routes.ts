@@ -5,6 +5,8 @@ import { Signup } from './pages/auth/signup/signup';
 import { Editor } from './pages/editor/editor';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { CourseDetails } from './pages/course-details/course-details';
+import { Settings } from './pages/settings/settings';
+import { authGuard } from './guards/auth.guard';
 import { Assignment } from './pages/assignment/assignment';
 import { ProblemDetail } from './pages/problem-detail/problem-detail';
 import { ProblemCreationPage } from './pages/problem-creation-page/problem-creation-page';
@@ -28,16 +30,25 @@ export const routes: Routes = [
     path: 'course/question',
     title: 'Course | Question',
     component: Editor,
+    canActivate: [authGuard],
   },
   {
     path: 'dashboard',
     title: 'Dashboard',
     component: Dashboard,
+    canActivate: [authGuard],
   },
   {
     path: 'course',
     title: 'Course',
     component: CourseDetails,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'settings',
+    title: 'Settings',
+    component: Settings,
+    canActivate: [authGuard],
   },
   {
     path: 'assignment',
