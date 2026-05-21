@@ -39,7 +39,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'course',
+    path: 'course/:id',
     title: 'Course',
     component: CourseDetails,
     canActivate: [authGuard],
@@ -51,9 +51,19 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'assignment/:id',
+    title: 'Assignment',
+    component: Assignment,
+  },
+  {
     path: 'assignment',
     title: 'Assignment',
     component: Assignment,
+  },
+  {
+    path: 'problem-detail/:id',
+    title: 'Problem Detail',
+    component: ProblemDetail,
   },
   {
     path: 'problem-detail',

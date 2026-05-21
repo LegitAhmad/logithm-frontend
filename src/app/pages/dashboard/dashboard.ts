@@ -5,7 +5,7 @@ import {
   inject,
   OnInit,
   PLATFORM_ID,
-  signal
+  signal,
 } from '@angular/core';
 import { Navbar } from '../../components/navbar/navbar';
 import { RouterLink } from '@angular/router';
@@ -55,11 +55,9 @@ export class Dashboard implements OnInit {
   }
 
   onCourseCreated(course: Course) {
-    console.log('Dashboard: Course created event received:', course);
     // Add the new course to the list immediately for better UX
-    this.courses.update(current => {
+    this.courses.update((current) => {
       const updated = [course, ...current];
-      console.log('Dashboard: Updated courses signal (immediate):', updated);
       return updated;
     });
     // Also trigger a full refresh to get enriched data (like creator name) and assignments
@@ -75,27 +73,22 @@ export class Dashboard implements OnInit {
 
   displayedCourses = computed(() => {
     const favorites = this.favoriteCourseIds();
-    const allCourses = this.courses().map(course => ({
+    const allCourses = this.courses().map((course) => ({
       ...course,
-      isFavorite: favorites.has(course._id)
+      isFavorite: favorites.has(course._id),
     }));
 
-    console.log('Dashboard: Recomputing displayedCourses. Count:', allCourses.length);
-    return this.activeView() === 'favorites'
-      ? allCourses.filter(c => c.isFavorite)
-      : allCourses;
+    return this.activeView() === 'favorites' ? allCourses.filter((c) => c.isFavorite) : allCourses;
   });
 
   ngOnInit() {
     if (!isPlatformBrowser(this.pid)) return;
 
-    console.log('Dashboard: Initializing...');
     this.loadFavoriteCourses();
     this.loadCourses();
   }
 
   setActiveView(view: 'all' | 'favorites') {
-    console.log('Dashboard: Setting active view to:', view);
     this.activeView.set(view);
   }
 
@@ -108,7 +101,7 @@ export class Dashboard implements OnInit {
 
     req.subscribe({
       next: () => {
-        this.favoriteCourseIds.update(set => {
+        this.favoriteCourseIds.update((set) => {
           const next = new Set(set);
           isFav ? next.delete(course._id) : next.add(course._id);
           return next;
@@ -116,28 +109,26 @@ export class Dashboard implements OnInit {
       },
       error: (err) => {
         console.error('Dashboard: Failed to update course favorite state', err);
-      }
+      },
     });
   }
 
   loadCourses() {
-    console.log('Dashboard: Loading courses...');
-    this.coursesService.getCourses()
+    this.coursesService
+      .getCourses()
       .pipe(
-        switchMap(res => {
-          console.log('Dashboard: Raw courses fetched, count:', res.data.length);
+        switchMap((res) => {
           return this.coursesService.enrichCoursesWithCreators(res.data);
-        })
+        }),
       )
       .subscribe({
         next: (courses: Course[]) => {
-          console.log('Dashboard: Enriched courses received, count:', courses.length);
           this.courses.set(courses);
           this.loadAssignments(courses);
         },
         error: (err) => {
           console.error('Dashboard: Failed to load courses', err);
-        }
+        },
       });
   }
 
@@ -148,7 +139,7 @@ export class Dashboard implements OnInit {
       },
       error: (err) => {
         console.error('Failed to load favorite courses from profile', err);
-      }
+      },
     });
   }
 
@@ -160,27 +151,35 @@ export class Dashboard implements OnInit {
     }
 
     forkJoin(
-      courses.map(course =>
+      courses.map((course) =>
         forkJoin({
-          pending: this.assignmentsService.getCourseAssignments(course._id, 'pending').pipe(catchError(() => of([]))),
-          missed: this.assignmentsService.getCourseAssignments(course._id, 'missed').pipe(catchError(() => of([])))
-        })
-      )
+          pending: this.assignmentsService
+            .getCourseAssignments(course._id, 'pending')
+            .pipe(catchError(() => of([]))),
+          missed: this.assignmentsService
+            .getCourseAssignments(course._id, 'missed')
+            .pipe(catchError(() => of([]))),
+        }),
+      ),
     ).subscribe({
       next: (results) => {
         this.pendingAssignments.set(
-          results.map((r, i) => this.toGroup(courses[i], r.pending)).filter(g => g.tasks.length > 0)
+          results
+            .map((r, i) => this.toGroup(courses[i], r.pending))
+            .filter((g) => g.tasks.length > 0),
         );
 
         this.missedAssignments.set(
-          results.map((r, i) => this.toGroup(courses[i], r.missed)).filter(g => g.tasks.length > 0)
+          results
+            .map((r, i) => this.toGroup(courses[i], r.missed))
+            .filter((g) => g.tasks.length > 0),
         );
       },
       error: (err) => {
         console.error('Failed to load assignments', err);
         this.pendingAssignments.set([]);
         this.missedAssignments.set([]);
-      }
+      },
     });
   }
 
@@ -188,11 +187,11 @@ export class Dashboard implements OnInit {
     return {
       courseId: course._id,
       courseName: course.name,
-      tasks: assignments.map(a => ({
+      tasks: assignments.map((a) => ({
         id: a._id,
         title: a.title ?? a.name ?? 'Untitled assignment',
-        dueLabel: this.formatDueLabel(a)
-      }))
+        dueLabel: this.formatDueLabel(a),
+      })),
     };
   }
 
@@ -222,7 +221,12 @@ export class Dashboard implements OnInit {
         continue;
       }
 
-      if (favorite && typeof favorite === 'object' && '_id' in favorite && typeof favorite._id === 'string') {
+      if (
+        favorite &&
+        typeof favorite === 'object' &&
+        '_id' in favorite &&
+        typeof favorite._id === 'string'
+      ) {
         favoriteCourseIds.add(favorite._id);
       }
     }

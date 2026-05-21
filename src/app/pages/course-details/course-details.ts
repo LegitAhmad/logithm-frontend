@@ -1,28 +1,99 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject, PLATFORM_ID, computed, signal, effect, untracked, ChangeDetectionStrategy } from '@angular/core';
 import { Navbar } from '../../components/navbar/navbar';
-import { RouterLink } from "@angular/router";
+import { RouterLink, ActivatedRoute } from "@angular/router";
 import { AssignmentCreationModal } from '../assignment-creation-modal/assignment-creation-modal';
+import { AssignmentsService, Assignment } from '../../services/assignments.service';
+import { CoursesService, Course } from '../../services/courses.service';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-course-details',
-  imports: [Navbar, RouterLink,AssignmentCreationModal],
+  standalone: true,
+  imports: [Navbar, RouterLink, AssignmentCreationModal, CommonModule],
   templateUrl: './course-details.html',
   styleUrl: './course-details.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CourseDetails {
-    isModalOpen: boolean = false;
-  openAddAssignmentPopup() {
-  this.isModalOpen = true;
-}
+export class CourseDetails implements OnInit {
+  private route = inject(ActivatedRoute);
+  private assignmentsService = inject(AssignmentsService);
+  private coursesService = inject(CoursesService);
+  private authService = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
 
-closeModal() {
-  this.isModalOpen = false;
-}
+  courseId: string | null = null;
+  course = signal<Course | null>(null);
+  assignments = signal<Assignment[]>([]);
+  isModalOpen = signal(false);
   isHovered = false;
 
-  assignments = [
-    { title: 'Submit All PD Tasks', due: '12:00 2/12/2026' },
-    { title: 'Submit Mid Lab Report', due: '23:00 10/12/2026' },
-    { title: 'Submit Lab Manual 3 Tasks', due: '12:00 2/12/2026' }
-  ];
+  isCreator = computed(() => {
+    const user = this.authService.user();
+    const course = this.course();
+    if (!user || !course) return false;
+    
+    // Check both _id and id properties since they might vary between frontend/backend models
+    const userId = (user as any)._id || (user as any).id;
+    return course.creatorId === userId;
+  });
+
+  constructor() {
+    // Re-fetch assignments whenever isCreator status changes
+    effect(() => {
+      if (!isPlatformBrowser(this.platformId)) return;
+      
+      this.isCreator(); // Register dependency
+      untracked(() => this.fetchAssignments());
+    });
+  }
+
+  ngOnInit() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.courseId = this.route.snapshot.paramMap.get('id');
+      if (this.courseId) {
+        this.fetchCourse();
+        // this.fetchAssignments(); // Handled by the effect
+        this.authService.fetchCurrentUser().subscribe();
+      }
+    }
+  }
+
+  fetchCourse() {
+    if (!this.courseId) return;
+    this.coursesService.getCourse(this.courseId).subscribe({
+      next: (course) => this.course.set(course),
+      error: (err) => console.error('Error fetching course', err)
+    });
+  }
+
+  fetchAssignments() {
+    const cid = this.courseId || this.route.snapshot.paramMap.get('id');
+    if (!cid) return;
+    
+    // If the user is the creator, fetch all assignments (including drafts)
+    // Otherwise, fetch published assignments only
+    const status = this.isCreator() ? 'all' : undefined;
+    
+    this.assignmentsService.getCourseAssignments(cid, status).subscribe({
+      next: (assignments) => this.assignments.set(assignments),
+      error: (err) => console.error('Error fetching assignments', err)
+    });
+  }
+
+  getDueLabel(assignment: Assignment): string {
+    if (assignment.dueAt) {
+      return new Date(assignment.dueAt).toLocaleString();
+    }
+    return assignment.dueDate ? `${assignment.dueTime || ''} ${assignment.dueDate}` : 'No due date';
+  }
+
+  openAddAssignmentPopup() {
+    this.isModalOpen.set(true);
+  }
+
+  closeModal() {
+    this.isModalOpen.set(false);
+    this.fetchAssignments();
+  }
 }

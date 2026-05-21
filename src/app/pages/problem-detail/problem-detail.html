@@ -15,7 +15,7 @@
       </div>
 
       <div class="p-4 overflow-y-auto custom-scrollbar flex-1 prose prose-invert prose-sm max-w-none">
-        <markdown [src]="markdownPath"></markdown>
+        <markdown [data]="markdownContent"></markdown>
       </div>
 
     </section>
@@ -65,13 +65,13 @@
           <!-- Test Case Buttons -->
           <div class="flex gap-2 shrink-0">
 
-            @for (test of testCases; track test.id) {
+            @for (test of testCases; track $index) {
 
-            <button (click)="selectedCase = test.id" [class.bg-primary/20]="selectedCase === test.id"
-              [class.text-primary]="selectedCase === test.id"
+            <button (click)="selectedCase = $index + 1" [class.bg-primary/20]="selectedCase === $index + 1"
+              [class.text-primary]="selectedCase === $index + 1"
               class="bg-white/5 text-gray-400 px-2.5 py-1 text-[10px] rounded-md font-medium hover:bg-white/10 border border-white/5 transition-all cursor-pointer">
 
-              Case {{ test.id }}
+              Case {{ $index + 1 }}
 
             </button>
 
@@ -94,9 +94,9 @@
               </div>
 
               <div>
-                <label class="text-[9px] text-gray-500 uppercase">Target</label>
+                <label class="text-[9px] text-gray-500 uppercase">Expected</label>
                 <div class="bg-white/5 border border-white/10 rounded-lg p-2 font-mono text-gray-200">
-                  {{ activeTest.target }}
+                  {{ activeTest.expectedOutput || activeTest.expected }}
                 </div>
               </div>
 

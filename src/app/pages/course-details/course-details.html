@@ -1,17 +1,23 @@
 <div class="h-screen flex flex-col bg-dashboard-grad text-white overflow-hidden">
   <app-navbar />
 
-  <div class="flex-1 flex flex-col px-8 pb-6 mt-[90px] h-full overflow-hidden">
+  <div class="flex-1 flex flex-col px-8 pb-6 mt-[140px] h-full overflow-hidden">
 
+    @if (isCreator()) {
     <div class="flex justify-end items-center pb-2 pr-8 shrink-0">
       <button (click)="openAddAssignmentPopup()"
         class="text-primary text-6xl font-light leading-none hover:scale-110 transition-transform cursor-pointer">
         +
       </button>
     </div>
+    }
 
-    @if (isModalOpen) {
-    <app-assignment-creation-modal (close)="closeModal()"></app-assignment-creation-modal>
+    @if (isModalOpen()) {
+    <app-assignment-creation-modal 
+      [courseId]="courseId" 
+      (close)="closeModal()" 
+      (assignmentCreated)="fetchAssignments()">
+    </app-assignment-creation-modal>
     }
 
     <div class="flex-1 grid grid-cols-1 gap-8 lg:grid-cols-2 h-full overflow-hidden">
@@ -19,7 +25,7 @@
       <section
         class="bg-dashboard-grad rounded-3xl p-6 flex flex-col h-full overflow-hidden border border-white/5 shadow-2xl">
         <div class="mb-6 flex items-end justify-between shrink-0">
-          <h2 class="text-3xl ml-3 font-semibold">Assignments</h2>
+          <h2 class="text-3xl ml-3 font-semibold">{{ course()?.name || 'Assignments' }}</h2>
           <div class="bg-bg3 flex gap-2 rounded-full p-1">
             <button
               class="bg-primary px-4 py-1 text-sm font-medium text-black rounded-full cursor-pointer">Pending</button>
@@ -28,8 +34,8 @@
         </div>
 
         <div class="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1">
-          @for (item of assignments; track item.title) {
-          <div routerLink="/assignment"
+          @for (item of assignments(); track item._id) {
+          <div [routerLink]="['/assignment', item._id]"
             class="bg-primary/5 hover:bg-bg3 flex items-center justify-between rounded-2xl p-4 transition-colors cursor-pointer shadow-[0_5px_3px_rgba(0,0,0,0.5)]">
             <div class="flex items-center gap-4">
               <div
@@ -41,8 +47,13 @@
                 </svg>
               </div>
               <div class="min-w-0">
-                <h3 class="text-md font-medium truncate">{{ item.title }}</h3>
-                <p class="text-xs text-gray-400 truncate">Due: {{ item.due }}</p>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-md font-medium truncate">{{ item.title || item.name }}</h3>
+                  @if (isCreator() && item.status === 'draft') {
+                    <span class="bg-gray-700 text-gray-300 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-tighter">Draft</span>
+                  }
+                </div>
+                <p class="text-xs text-gray-400 truncate">Due: {{ getDueLabel(item) }}</p>
               </div>
             </div>
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24"
@@ -50,6 +61,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
           </div>
+          } @empty {
+            <div class="text-center py-8 text-gray-400 italic">No assignments found for this course</div>
           }
         </div>
       </section>

@@ -67,6 +67,10 @@ export class CoursesService {
     return this.http.post<Course>(`${this.baseUrl}/${courseId}/favorite`, {});
   }
 
+  getCourse(courseId: string): Observable<Course> {
+    return this.http.get<Course>(`${this.baseUrl}/${courseId}`);
+  }
+
   unfavoriteCourse(courseId: string): Observable<Course> {
     return this.http.delete<Course>(`${this.baseUrl}/${courseId}/favorite`);
   }
@@ -77,13 +81,10 @@ export class CoursesService {
     startDate: string;
     endDate: string;
   }): Observable<Course> {
-    console.log('CoursesService: Creating course:', courseData);
     return this.http.post<any>(this.baseUrl, courseData).pipe(
       map((response) => {
-        console.log('CoursesService: Raw createCourse response:', response);
         // Handle potential wrapped response { course: { ... } }
         const course = response?.course || response;
-        console.log('CoursesService: Resolved course object:', course);
         return course;
       }),
       catchError((err) => {
@@ -94,7 +95,6 @@ export class CoursesService {
   }
 
   enrichCoursesWithCreators(courses: Course[]): Observable<Course[]> {
-    console.log('CoursesService: Enriching courses, count:', courses.length);
     if (!courses || courses.length === 0) {
       return of([]);
     }
@@ -123,7 +123,6 @@ export class CoursesService {
     // Execute all requests in parallel and combine results
     return forkJoin(userRequests).pipe(
       map((enrichedCourses) => {
-        console.log('CoursesService: Enrichment complete, count:', enrichedCourses.length);
         return enrichedCourses;
       }),
     );

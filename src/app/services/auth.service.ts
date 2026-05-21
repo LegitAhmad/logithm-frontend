@@ -55,19 +55,13 @@ export class AuthService {
   readonly isAuthenticated = computed(() => !!this.accessToken());
 
   constructor() {
-    // 3. Sync Signals to LocalStorage automatically
-    effect(() => {
-      if (isPlatformBrowser(this.platformId)) {
-        const token = this.accessToken();
-        const refresh = this.refreshToken();
-
-        if (token) localStorage.setItem(ACCESS_TOKEN_KEY, token);
-        else localStorage.removeItem(ACCESS_TOKEN_KEY);
-
-        if (refresh) localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
-        else localStorage.removeItem(REFRESH_TOKEN_KEY);
-      }
-    });
+    // Sync signals with localStorage on initialization if in browser
+    if (isPlatformBrowser(this.platformId)) {
+      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
+      const refresh = localStorage.getItem(REFRESH_TOKEN_KEY);
+      if (token) this.accessToken.set(token);
+      if (refresh) this.refreshToken.set(refresh);
+    }
   }
 
   private getInitialToken(key: string): string | null {
@@ -77,7 +71,11 @@ export class AuthService {
   private setSession(tokens: AuthTokens): void {
     this.accessToken.set(tokens.accessToken);
     this.refreshToken.set(tokens.refreshToken);
-    // You could also decode the JWT here to set the user signal
+    
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
+      localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
+    }
   }
 
   login(payload: LoginPayload): Observable<AuthTokens> {
@@ -126,7 +124,9 @@ export class AuthService {
     const refreshToken = this.getRefreshToken();
     return this.http.post<AuthTokens>(`${environment.apiBaseUrl}/auth/refresh`, {
       refreshToken,
-    });
+    }).pipe(
+      tap(tokens => this.setSession(tokens))
+    );
   }
 
   storeTokens(tokens: AuthTokens): void {
@@ -134,14 +134,19 @@ export class AuthService {
   }
 
   getAccessToken(): string | null {
+    const token = this.accessToken();
+    if (token) return token;
+    
     if (isPlatformBrowser(this.platformId)) {
       return localStorage.getItem(ACCESS_TOKEN_KEY);
     }
-    console.log('got null');
     return null;
   }
 
   getRefreshToken(): string | null {
+    const token = this.refreshToken();
+    if (token) return token;
+
     if (isPlatformBrowser(this.platformId)) {
       return localStorage.getItem(REFRESH_TOKEN_KEY);
     }
@@ -152,8 +157,10 @@ export class AuthService {
     this.accessToken.set(null);
     this.refreshToken.set(null);
     this.user.set(null);
-    localStorage.removeItem(ACCESS_TOKEN_KEY);
-    localStorage.removeItem(REFRESH_TOKEN_KEY);
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem(ACCESS_TOKEN_KEY);
+      localStorage.removeItem(REFRESH_TOKEN_KEY);
+    }
   }
 
   logout(): void {

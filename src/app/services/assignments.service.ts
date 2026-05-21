@@ -26,9 +26,20 @@ export class AssignmentsService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/assignments`;
 
-  getCourseAssignments(courseId: string, status?: 'pending' | 'missed'): Observable<Assignment[]> {
+  getCourseAssignments(courseId: string, status?: 'pending' | 'missed' | 'all'): Observable<Assignment[]> {
+    if (status === 'all') {
+      return this.http.get<Assignment[]>(this.baseUrl, { params: { courseId } });
+    }
     const params = status ? { status } : undefined;
 
     return this.http.get<Assignment[]>(`${this.baseUrl}/course/${courseId}`, { params });
+  }
+
+  createAssignment(assignment: Partial<Assignment>): Observable<Assignment> {
+    return this.http.post<Assignment>(this.baseUrl, assignment);
+  }
+
+  getAssignment(id: string): Observable<Assignment> {
+    return this.http.get<Assignment>(`${this.baseUrl}/${id}`);
   }
 }
