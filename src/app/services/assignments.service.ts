@@ -14,7 +14,11 @@ export interface Assignment {
   dueDate?: string;
   dueTime?: string;
   dueAt?: string;
+  startAt?: string;
   courseId?: string;
+  courseIds?: string[];
+  questionIds?: string[];
+  description?: string;
   course?: {
     _id?: string;
     name?: string;
@@ -41,5 +45,13 @@ export class AssignmentsService {
 
   getAssignment(id: string): Observable<Assignment> {
     return this.http.get<Assignment>(`${this.baseUrl}/${id}`);
+  }
+
+  updateAssignment(id: string, data: Partial<Assignment>): Observable<Assignment> {
+    return this.http.patch<Assignment>(`${this.baseUrl}/${id}`, data);
+  }
+
+  deleteAssignment(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 }

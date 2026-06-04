@@ -27,23 +27,22 @@ export class CourseDetails implements OnInit {
   assignments = signal<Assignment[]>([]);
   isModalOpen = signal(false);
   isHovered = false;
+  deletingId = signal<string | null>(null);
 
   isCreator = computed(() => {
     const user = this.authService.user();
     const course = this.course();
     if (!user || !course) return false;
-    
-    // Check both _id and id properties since they might vary between frontend/backend models
+
     const userId = (user as any)._id || (user as any).id;
     return course.creatorId === userId;
   });
 
   constructor() {
-    // Re-fetch assignments whenever isCreator status changes
     effect(() => {
       if (!isPlatformBrowser(this.platformId)) return;
-      
-      this.isCreator(); // Register dependency
+
+      this.isCreator();
       untracked(() => this.fetchAssignments());
     });
   }
@@ -53,7 +52,6 @@ export class CourseDetails implements OnInit {
       this.courseId = this.route.snapshot.paramMap.get('id');
       if (this.courseId) {
         this.fetchCourse();
-        // this.fetchAssignments(); // Handled by the effect
         this.authService.fetchCurrentUser().subscribe();
       }
     }
@@ -70,15 +68,36 @@ export class CourseDetails implements OnInit {
   fetchAssignments() {
     const cid = this.courseId || this.route.snapshot.paramMap.get('id');
     if (!cid) return;
-    
-    // If the user is the creator, fetch all assignments (including drafts)
-    // Otherwise, fetch published assignments only
+
     const status = this.isCreator() ? 'all' : undefined;
-    
+
     this.assignmentsService.getCourseAssignments(cid, status).subscribe({
       next: (assignments) => this.assignments.set(assignments),
       error: (err) => console.error('Error fetching assignments', err)
     });
+  }
+
+  deleteAssignment(event: Event, assignmentId: string) {
+    event.stopPropagation();
+    event.preventDefault();
+
+    if (this.deletingId()) return;
+    this.deletingId.set(assignmentId);
+
+    this.assignmentsService.deleteAssignment(assignmentId).subscribe({
+      next: () => {
+        this.assignments.update(list => list.filter(a => a._id !== assignmentId));
+        this.deletingId.set(null);
+      },
+      error: (err) => {
+        console.error('Error deleting assignment', err);
+        this.deletingId.set(null);
+      }
+    });
+  }
+
+  countByStatus(status: string): number {
+    return this.assignments().filter(a => a.status === status).length;
   }
 
   getDueLabel(assignment: Assignment): string {

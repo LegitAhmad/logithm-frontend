@@ -1,0 +1,22 @@
+.picker-drawer {
+  animation: slideInRight 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+/* Dark-mode native date/time inputs */
+.date-input {
+  color-scheme: dark;
+}
+
+/* Remove the default calendar/clock icon tint on Chrome */
+.date-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.4);
+  cursor: pointer;
+}
+.date-input::-webkit-calendar-picker-indicator:hover {
+  filter: invert(0.8);
+}

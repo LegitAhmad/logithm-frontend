@@ -1,0 +1,366 @@
+<div class="h-screen flex flex-col bg-dashboard-grad text-white overflow-hidden">
+  <app-navbar />
+
+  <!-- Question Picker Drawer -->
+  @if (isPickerOpen()) {
+  <div class="fixed inset-0 z-50 flex">
+    <div class="flex-1 bg-black/50 backdrop-blur-sm" (click)="closePicker()"></div>
+    <div class="w-[460px] h-full bg-[#0f0f0f] border-l border-white/10 flex flex-col shadow-2xl picker-drawer">
+
+      <!-- Drawer Header -->
+      <div class="px-6 pt-6 pb-5 border-b border-white/[0.06] shrink-0">
+        <div class="flex items-start justify-between mb-5">
+          <div>
+            <h3 class="text-lg font-extrabold text-white tracking-tight">Question Bank</h3>
+            <p class="text-[11px] text-gray-500 mt-0.5 uppercase tracking-widest font-bold">
+              {{ filteredPickerQuestions().length }} available
+            </p>
+          </div>
+          <button (click)="closePicker()"
+            class="h-8 w-8 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <!-- Search -->
+        <div class="relative mb-3">
+          <input type="text"
+            [ngModel]="pickerSearch()" (ngModelChange)="pickerSearch.set($event)"
+            placeholder="Search questions…"
+            class="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-2.5 pl-10 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-primary/50 transition-colors" />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute left-3.5 top-3 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <!-- Difficulty Pills -->
+        <div class="flex gap-2">
+          @for (d of difficulties; track d) {
+          <button (click)="pickerDifficulty.set(d)"
+            [class.bg-primary]="pickerDifficulty() === d"
+            [class.text-black]="pickerDifficulty() === d"
+            [class.font-black]="pickerDifficulty() === d"
+            [class.bg-white/5]="pickerDifficulty() !== d"
+            [class.text-gray-400]="pickerDifficulty() !== d"
+            class="px-3 py-1 text-[11px] font-bold rounded-full transition-all cursor-pointer">
+            {{ d }}
+          </button>
+          }
+        </div>
+      </div>
+
+      <!-- Question List -->
+      <div class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+        @for (q of filteredPickerQuestions(); track q._id) {
+        <div (click)="addQuestion(q)"
+          class="bg-white/[0.02] hover:bg-primary/10 border border-white/[0.06] hover:border-primary/30 rounded-2xl p-4 cursor-pointer transition-all group">
+          <div class="flex items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-gray-200 group-hover:text-white truncate transition-colors">{{ q.title }}</p>
+              @if (q.tags && q.tags.length > 0) {
+              <p class="text-[11px] text-gray-600 mt-0.5 truncate">{{ q.tags.slice(0, 3).join(' · ') }}</p>
+              }
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider" [class]="difficultyClass(q.difficulty)">
+                {{ q.difficulty }}
+              </span>
+              <div class="h-6 w-6 rounded-full bg-primary/0 group-hover:bg-primary/20 border border-white/10 group-hover:border-primary/40 text-primary flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        } @empty {
+        <div class="flex flex-col items-center justify-center py-16 text-center">
+          <div class="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center mb-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <p class="text-sm text-gray-500">No questions found</p>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+
+  <!-- Main Content -->
+  <div class="flex-1 grid grid-cols-12 gap-6 px-8 pb-6 mt-[120px] overflow-hidden">
+
+    <!-- ── Left Panel ── -->
+    <div class="col-span-7 flex flex-col gap-5 h-full overflow-hidden">
+
+      <!-- Page Header -->
+      <div class="flex items-center gap-4 shrink-0">
+        <button (click)="goBack()"
+          class="h-9 w-9 rounded-xl bg-white/[0.04] border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:border-white/20 transition-all cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div>
+          <h1 class="text-2xl font-extrabold tracking-tight">New Assignment</h1>
+          <p class="text-[10px] text-white/25 uppercase tracking-[0.35em] font-bold mt-0.5">Instructor Dashboard</p>
+        </div>
+      </div>
+
+      <!-- Basic Info Card -->
+      <section class="bg-white/[0.03] border border-white/[0.07] rounded-3xl p-6 shadow-2xl shrink-0">
+        <div class="flex items-center gap-2 mb-5">
+          <div class="h-6 w-6 rounded-lg bg-primary/15 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </div>
+          <span class="text-[10px] font-black text-white/30 uppercase tracking-widest">Basic Info</span>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-2">
+              Assignment Title <span class="text-primary/60">*</span>
+            </label>
+            <input type="text"
+              [ngModel]="title()" (ngModelChange)="title.set($event)"
+              placeholder="e.g. Lab Report 03: Linked Lists & Trees"
+              class="w-full bg-black/30 border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-primary/50 hover:border-white/20 transition-all" />
+          </div>
+          <div>
+            <label class="text-[10px] font-black text-white/30 uppercase tracking-widest block mb-2">
+              Description <span class="text-white/15 normal-case tracking-normal font-medium">(optional)</span>
+            </label>
+            <textarea
+              [ngModel]="description()" (ngModelChange)="description.set($event)"
+              rows="3"
+              placeholder="Add context, instructions, or grading notes for students…"
+              class="w-full bg-black/30 border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-primary/50 hover:border-white/20 transition-all resize-none"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <!-- Questions Card -->
+      <section class="bg-white/[0.03] border border-white/[0.07] rounded-3xl p-6 shadow-2xl flex flex-col flex-1 overflow-hidden">
+        <div class="flex items-center justify-between shrink-0 mb-5">
+          <div class="flex items-center gap-3">
+            <div class="h-6 w-6 rounded-lg bg-primary/15 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <span class="text-[10px] font-black text-white/30 uppercase tracking-widest">Questions</span>
+            @if (selectedQuestions().length > 0) {
+            <span class="bg-primary/20 text-primary text-[10px] font-black px-2.5 py-0.5 rounded-full leading-none">
+              {{ selectedQuestions().length }}
+            </span>
+            }
+          </div>
+          <button (click)="openPicker()"
+            class="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 border border-primary/20 hover:border-primary/40 text-primary text-[11px] font-black rounded-xl transition-all cursor-pointer uppercase tracking-wider">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Questions
+          </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto custom-scrollbar">
+          @if (selectedQuestions().length === 0) {
+          <!-- Empty State -->
+          <div class="flex flex-col items-center justify-center h-full py-8 text-center">
+            <div class="w-16 h-16 rounded-3xl bg-white/[0.03] border border-white/[0.06] flex items-center justify-center mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 12l2 2 4-4" />
+              </svg>
+            </div>
+            <p class="text-sm font-semibold text-gray-400">No questions added yet</p>
+            <p class="text-xs text-gray-600 mt-1 max-w-[220px]">Browse the question bank and pick the ones that fit this assignment</p>
+            <button (click)="openPicker()"
+              class="mt-5 px-5 py-2.5 bg-primary/10 hover:bg-primary/20 border border-primary/20 hover:border-primary/40 text-primary text-[11px] font-black rounded-xl transition-all cursor-pointer uppercase tracking-wider">
+              Browse Question Bank
+            </button>
+          </div>
+          }
+          @if (selectedQuestions().length > 0) {
+          <div class="space-y-2">
+            @for (q of selectedQuestions(); track q._id; let i = $index) {
+            <div class="group bg-primary/[0.03] hover:bg-white/[0.04] border border-white/[0.06] rounded-2xl px-4 py-3.5 flex items-center gap-4 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.3)]">
+              <!-- Drag handle (decorative) -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white/10 shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm-8 8a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+              </svg>
+              <span class="text-[11px] text-white/20 font-mono w-4 shrink-0 text-right">{{ i + 1 }}</span>
+              <p class="text-sm font-medium text-gray-300 group-hover:text-white flex-1 truncate transition-colors">{{ q.title }}</p>
+              <span class="text-[10px] font-black px-2.5 py-0.5 rounded-full uppercase tracking-wider shrink-0" [class]="difficultyClass(q.difficulty)">
+                {{ q.difficulty }}
+              </span>
+              <button (click)="removeQuestion(q._id)"
+                class="p-1.5 rounded-lg text-white/15 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100 cursor-pointer shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            }
+          </div>
+          }
+        </div>
+      </section>
+    </div>
+
+    <!-- ── Right Panel ── -->
+    <div class="col-span-5 flex flex-col gap-5 h-full overflow-y-auto custom-scrollbar">
+
+      <!-- Schedule Card -->
+      <section class="bg-white/[0.03] border border-white/[0.07] rounded-3xl p-6 shadow-2xl shrink-0">
+        <div class="flex items-center gap-2 mb-5">
+          <div class="h-6 w-6 rounded-lg bg-primary/15 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <span class="text-[10px] font-black text-white/30 uppercase tracking-widest">Schedule</span>
+        </div>
+
+        <div class="space-y-4">
+          <div>
+            <label class="text-[10px] font-black text-white/25 uppercase tracking-widest block mb-2">Start Date & Time</label>
+            <div class="flex gap-2">
+              <input type="date"
+                [ngModel]="startDate()" (ngModelChange)="startDate.set($event)"
+                class="flex-1 bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 hover:border-white/20 transition-colors date-input" />
+              <input type="time"
+                [ngModel]="startTime()" (ngModelChange)="startTime.set($event)"
+                class="w-28 bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 hover:border-white/20 transition-colors date-input" />
+            </div>
+          </div>
+
+          <div class="border-t border-white/[0.05] pt-4">
+            <label class="text-[10px] font-black text-white/25 uppercase tracking-widest block mb-2">Deadline</label>
+            <div class="flex gap-2">
+              <input type="date"
+                [ngModel]="dueDate()" (ngModelChange)="dueDate.set($event)"
+                class="flex-1 bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 hover:border-white/20 transition-colors date-input" />
+              <input type="time"
+                [ngModel]="dueTime()" (ngModelChange)="dueTime.set($event)"
+                class="w-28 bg-black/30 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-primary/50 hover:border-white/20 transition-colors date-input" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Course Linking Card -->
+      <section class="bg-white/[0.03] border border-white/[0.07] rounded-3xl p-6 shadow-2xl flex flex-col shrink-0" style="min-height: 280px; max-height: 360px;">
+        <div class="flex items-center justify-between shrink-0 mb-1">
+          <div class="flex items-center gap-2">
+            <div class="h-6 w-6 rounded-lg bg-primary/15 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+              </svg>
+            </div>
+            <span class="text-[10px] font-black text-white/30 uppercase tracking-widest">Link to Courses</span>
+          </div>
+          @if (selectedCourseIds().length > 0) {
+          <span class="bg-primary/20 text-primary text-[10px] font-black px-2.5 py-0.5 rounded-full leading-none">
+            {{ selectedCourseIds().length }} linked
+          </span>
+          }
+        </div>
+        <p class="text-[11px] text-gray-600 mb-4 shrink-0">Students in linked courses will see this assignment.</p>
+
+        <!-- Course Search -->
+        <div class="relative shrink-0 mb-3">
+          <input type="text"
+            [ngModel]="courseSearch()" (ngModelChange)="courseSearch.set($event)"
+            placeholder="Search courses…"
+            class="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-2 pl-9 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-primary/50 hover:border-white/20 transition-colors" />
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 absolute left-3 top-2.5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <!-- Courses List -->
+        <div class="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
+          @for (course of filteredCourses(); track course._id) {
+          <div (click)="toggleCourse(course._id)"
+            [class.border-primary/40]="isCourseSelected(course._id)"
+            [class.bg-primary/[0.07]]="isCourseSelected(course._id)"
+            [class.border-white/[0.06]]="!isCourseSelected(course._id)"
+            [class.bg-white/[0.015]]="!isCourseSelected(course._id)"
+            class="rounded-xl px-3.5 py-3 border cursor-pointer transition-all hover:border-primary/20 flex items-center justify-between gap-3 group">
+            <div class="min-w-0">
+              <p class="text-sm font-semibold truncate transition-colors"
+                [class.text-white]="isCourseSelected(course._id)"
+                [class.text-gray-400]="!isCourseSelected(course._id)">
+                {{ course.name }}
+              </p>
+              @if (course.creator) {
+              <p class="text-[11px] text-gray-600 truncate mt-0.5">
+                {{ course.creator.firstName }} {{ course.creator.lastName }}
+              </p>
+              }
+            </div>
+            <!-- Toggle indicator -->
+            <div class="h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all duration-200"
+              [class.bg-primary]="isCourseSelected(course._id)"
+              [class.border-primary]="isCourseSelected(course._id)"
+              [class.border-white/20]="!isCourseSelected(course._id)"
+              [class.group-hover:border-white/40]="!isCourseSelected(course._id)">
+              @if (isCourseSelected(course._id)) {
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-2.5 w-2.5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5" d="M5 13l4 4L19 7" />
+              </svg>
+              }
+            </div>
+          </div>
+          } @empty {
+          <div class="text-center py-8 text-gray-600 text-xs italic">No courses found</div>
+          }
+        </div>
+      </section>
+
+      <!-- Actions Card -->
+      <section class="bg-white/[0.03] border border-white/[0.07] rounded-3xl p-5 shadow-2xl shrink-0">
+
+        <!-- Validation notice -->
+        @if (saveError()) {
+        <div class="flex items-start gap-3 bg-red-500/10 border border-red-500/20 rounded-2xl px-4 py-3 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-400 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <p class="text-xs text-red-300 leading-relaxed">{{ saveError() }}</p>
+        </div>
+        } @else if (selectedCourseIds().length === 0) {
+        <div class="flex items-start gap-3 bg-yellow-500/[0.06] border border-yellow-500/15 rounded-2xl px-4 py-3 mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-yellow-500/70 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="text-[11px] text-yellow-500/70 leading-relaxed">Link at least one course to make this assignment publishable.</p>
+        </div>
+        }
+
+        <!-- Buttons -->
+        <div class="flex gap-3">
+          <button (click)="saveAsDraft()"
+            [disabled]="!canDraft() || isSaving()"
+            class="flex-1 py-3.5 rounded-2xl border border-white/15 text-white/50 hover:text-white hover:border-white/30 text-[11px] font-black uppercase tracking-widest transition-all cursor-pointer disabled:opacity-25 disabled:cursor-not-allowed">
+            @if (isSaving()) { Saving… } @else { Save as Draft }
+          </button>
+          <button (click)="publish()"
+            [disabled]="!canPublish() || isSaving()"
+            class="flex-1 py-3.5 rounded-2xl bg-primary text-black text-[11px] font-black uppercase tracking-widest hover:brightness-110 active:scale-[0.98] transition-all shadow-xl shadow-primary/20 cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none">
+            @if (isSaving()) { Publishing… } @else { Publish }
+          </button>
+        </div>
+
+        <p class="text-center text-[10px] text-white/15 mt-3 leading-relaxed">
+          Drafts are only visible to you · Published assignments are visible to enrolled students
+        </p>
+      </section>
+    </div>
+  </div>
+</div>

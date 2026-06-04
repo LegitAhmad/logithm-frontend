@@ -10,6 +10,7 @@ import { authGuard } from './guards/auth.guard';
 import { Assignment } from './pages/assignment/assignment';
 import { ProblemDetail } from './pages/problem-detail/problem-detail';
 import { ProblemCreationPage } from './pages/problem-creation-page/problem-creation-page';
+import { AssignmentCreationPage } from './pages/assignment-creation-page/assignment-creation-page';
 
 export const routes: Routes = [
   {
@@ -48,6 +49,12 @@ export const routes: Routes = [
     path: 'settings',
     title: 'Settings',
     component: Settings,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'assignment/create',
+    title: 'Create Assignment',
+    component: AssignmentCreationPage,
     canActivate: [authGuard],
   },
   {

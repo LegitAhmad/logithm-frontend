@@ -13,53 +13,90 @@
     }
 
     @if (isModalOpen()) {
-    <app-assignment-creation-modal 
-      [courseId]="courseId" 
-      (close)="closeModal()" 
-      (assignmentCreated)="fetchAssignments()">
+    <app-assignment-creation-modal
+      [courseId]="courseId"
+      (close)="closeModal()">
     </app-assignment-creation-modal>
     }
 
-    <div class="flex-1 grid grid-cols-1 gap-8 lg:grid-cols-2 h-full overflow-hidden">
 
+<div class="flex-1 grid grid-cols-1 gap-8 lg:grid-cols-2 h-full overflow-hidden">
+
+      <!-- ── Assignments list (shared, role-aware) ── -->
       <section
         class="bg-dashboard-grad rounded-3xl p-6 flex flex-col h-full overflow-hidden border border-white/5 shadow-2xl">
         <div class="mb-6 flex items-end justify-between shrink-0">
           <h2 class="text-3xl ml-3 font-semibold">{{ course()?.name || 'Assignments' }}</h2>
+
+          @if (!isCreator()) {
+          <!-- Student: Pending / Completed toggle -->
           <div class="bg-bg3 flex gap-2 rounded-full p-1">
             <button
               class="bg-primary px-4 py-1 text-sm font-medium text-black rounded-full cursor-pointer">Pending</button>
             <button class="px-4 py-1 text-sm font-medium text-gray-400 cursor-pointer">Completed</button>
           </div>
+          } @else {
+          <!-- Teacher: label -->
+          <span class="text-xs text-gray-400 uppercase tracking-widest mr-1">Instructor View</span>
+          }
         </div>
 
         <div class="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1">
           @for (item of assignments(); track item._id) {
-          <div [routerLink]="['/assignment', item._id]"
-            class="bg-primary/5 hover:bg-bg3 flex items-center justify-between rounded-2xl p-4 transition-colors cursor-pointer shadow-[0_5px_3px_rgba(0,0,0,0.5)]">
-            <div class="flex items-center gap-4">
-              <div
-                class="bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold text-black">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-              <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                  <h3 class="text-md font-medium truncate">{{ item.title || item.name }}</h3>
-                  @if (isCreator() && item.status === 'draft') {
-                    <span class="bg-gray-700 text-gray-300 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-tighter">Draft</span>
-                  }
+          <div class="relative group">
+            <div [routerLink]="['/assignment', item._id]"
+              [queryParams]="{ courseId: courseId }"
+              class="bg-primary/5 hover:bg-bg3 flex items-center justify-between rounded-2xl p-4 transition-colors cursor-pointer shadow-[0_5px_3px_rgba(0,0,0,0.5)]">
+              <div class="flex items-center gap-4">
+                <div
+                  class="bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold text-black">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
                 </div>
-                <p class="text-xs text-gray-400 truncate">Due: {{ getDueLabel(item) }}</p>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-md font-medium truncate">{{ item.title || item.name }}</h3>
+                    @if (isCreator() && item.status === 'draft') {
+                      <span class="bg-gray-700 text-gray-300 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-tighter">Draft</span>
+                    }
+                    @if (isCreator() && item.status === 'published') {
+                      <span class="bg-green-900/60 text-green-300 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-tighter">Published</span>
+                    }
+                  </div>
+                  <p class="text-xs text-gray-400 truncate">Due: {{ getDueLabel(item) }}</p>
+                </div>
               </div>
+
+              @if (isCreator()) {
+              <!-- Teacher: delete button -->
+              <button
+                (click)="deleteAssignment($event, item._id)"
+                [disabled]="deletingId() === item._id"
+                class="ml-2 p-2 rounded-full text-gray-500 hover:text-red-400 hover:bg-red-400/10 transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                title="Delete assignment">
+                @if (deletingId() === item._id) {
+                  <svg class="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
+                  </svg>
+                } @else {
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                }
+              </button>
+              } @else {
+              <!-- Student: chevron -->
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 mr-2" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+              }
             </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
           </div>
           } @empty {
             <div class="text-center py-8 text-gray-400 italic">No assignments found for this course</div>
@@ -67,18 +104,93 @@
         </div>
       </section>
 
+      <!-- ── Right panel: teacher view ── -->
+      @if (isCreator()) {
       <div class="flex flex-col gap-6 h-full overflow-hidden">
+
+        <!-- Class Overview donut -->
         <section (mouseenter)="isHovered = true" (mouseleave)="isHovered = false"
           class="bg-bg1/15 relative rounded-3xl p-6 pt-4 flex flex-col flex-[1.5] overflow-hidden border border-white/5 shadow-2xl">
-          <h2 class=" text-2xl font-semibold text-center shrink-0">Class Statistics</h2>
+          <h2 class="text-2xl font-semibold text-center shrink-0">Class Overview</h2>
           <div class="relative flex items-center justify-center flex-1">
             <div class="transition-transform duration-500 ease-in-out" [class.-translate-x-24]="isHovered"
               [class.lg:-translate-x-32]="isHovered">
               <div class="relative w-36 h-36 flex items-center justify-center">
                 <svg class="absolute w-full h-full -rotate-90" viewBox="0 0 192 192">
                   <circle cx="96" cy="96" r="80" stroke="#ebd5ab1a" stroke-width="4" fill="none" />
-                  <circle cx="96" cy="96" r="80" stroke="#facc15" stroke-width="12" fill="none" stroke-dasharray="502"
-                    stroke-dashoffset="120" stroke-linecap="round" />
+                  <circle cx="96" cy="96" r="80" stroke="#facc15" stroke-width="12" fill="none"
+                    stroke-dasharray="502" stroke-dashoffset="120" stroke-linecap="round" />
+                </svg>
+                <div class="flex flex-col items-center">
+                  <span class="text-2xl font-bold text-primary">{{ assignments().length }}</span>
+                  <span class="text-[10px] text-gray-400 uppercase tracking-wider">Assignments</span>
+                </div>
+              </div>
+            </div>
+            <div class="absolute right-2 lg:right-4 transition-all duration-500"
+              [class.opacity-100]="isHovered" [class.translate-x-0]="isHovered"
+              [class.opacity-0]="!isHovered" [class.translate-x-10]="!isHovered">
+              <div class="bg-bg3 rounded-2xl p-4 shadow-2xl border border-white/5 min-w-35">
+                <h4 class="font-bold text-xs mb-2 border-b border-white/10 pb-1 text-primary">Summary</h4>
+                <ul class="space-y-2 text-[11px]">
+                  <li class="flex justify-between text-gray-300">
+                    Total: <span class="text-white font-bold">{{ assignments().length }}</span>
+                  </li>
+                  <li class="flex justify-between text-gray-300">
+                    Published: <span class="text-green-400 font-bold">{{ countByStatus('published') }}</span>
+                  </li>
+                  <li class="flex justify-between text-gray-300">
+                    Drafts: <span class="text-accent font-bold">{{ countByStatus('draft') }}</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Assignment status breakdown -->
+        <section
+          class="bg-bg1/15 rounded-3xl p-6 pt-4 flex flex-col flex-1 overflow-hidden border border-white/5 shadow-2xl">
+          <h2 class="mb-4 text-2xl font-semibold text-center shrink-0">Assignment Status</h2>
+          <div class="space-y-3 overflow-y-auto pr-3 pb-4 custom-scrollbar">
+            @for (item of assignments(); track item._id) {
+            <div class="bg-primary/5 rounded-xl px-4 py-3 shadow-[0_5px_3px_rgba(0,0,0,0.5)] border border-white/5 flex justify-between items-center">
+              <h3 class="text-sm font-medium text-gray-200 truncate max-w-[60%]">{{ item.title || item.name }}</h3>
+              <div class="flex items-center gap-3 shrink-0 text-xs text-gray-400">
+                <span>{{ getDueLabel(item) }}</span>
+                @if (item.status === 'draft') {
+                  <span class="bg-gray-700 text-gray-300 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold">Draft</span>
+                } @else if (item.status === 'published') {
+                  <span class="bg-green-900/60 text-green-300 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold">Published</span>
+                } @else {
+                  <span class="bg-blue-900/60 text-blue-300 text-[10px] px-2 py-0.5 rounded-full capitalize font-bold">{{ item.status }}</span>
+                }
+              </div>
+            </div>
+            } @empty {
+              <div class="text-center py-8 text-gray-400 italic">No assignments yet</div>
+            }
+          </div>
+        </section>
+      </div>
+      }
+
+      <!-- ── Right panel: student view ── -->
+      @if (!isCreator()) {
+      <div class="flex flex-col gap-6 h-full overflow-hidden">
+
+        <!-- Personal score donut -->
+        <section (mouseenter)="isHovered = true" (mouseleave)="isHovered = false"
+          class="bg-bg1/15 relative rounded-3xl p-6 pt-4 flex flex-col flex-[1.5] overflow-hidden border border-white/5 shadow-2xl">
+          <h2 class="text-2xl font-semibold text-center shrink-0">Class Statistics</h2>
+          <div class="relative flex items-center justify-center flex-1">
+            <div class="transition-transform duration-500 ease-in-out" [class.-translate-x-24]="isHovered"
+              [class.lg:-translate-x-32]="isHovered">
+              <div class="relative w-36 h-36 flex items-center justify-center">
+                <svg class="absolute w-full h-full -rotate-90" viewBox="0 0 192 192">
+                  <circle cx="96" cy="96" r="80" stroke="#ebd5ab1a" stroke-width="4" fill="none" />
+                  <circle cx="96" cy="96" r="80" stroke="#facc15" stroke-width="12" fill="none"
+                    stroke-dasharray="502" stroke-dashoffset="120" stroke-linecap="round" />
                 </svg>
                 <div class="flex flex-col items-center">
                   <span class="text-2xl font-bold text-primary">82%</span>
@@ -86,23 +198,22 @@
                 </div>
               </div>
             </div>
-            <div class="absolute right-2 lg:right-4 transition-all duration-500" [class.opacity-100]="isHovered"
-              [class.translate-x-0]="isHovered" [class.opacity-0]="!isHovered" [class.translate-x-10]="!isHovered">
-              <div class="bg-bg3 rounded-2xl p-4 shadow-2xl border border-white/5 min-w-[140px]">
+            <div class="absolute right-2 lg:right-4 transition-all duration-500"
+              [class.opacity-100]="isHovered" [class.translate-x-0]="isHovered"
+              [class.opacity-0]="!isHovered" [class.translate-x-10]="!isHovered">
+              <div class="bg-bg3 rounded-2xl p-4 shadow-2xl border border-white/5 min-w-35">
                 <h4 class="font-bold text-xs mb-2 border-b border-white/10 pb-1 text-primary">Overview</h4>
                 <ul class="space-y-2 text-[11px]">
-                  <li class="flex justify-between text-gray-300">Marks: <span class="text-white font-bold">82%</span>
-                  </li>
-                  <li class="flex justify-between text-gray-300">Average: <span class="text-accent font-bold">76%</span>
-                  </li>
-                  <li class="flex justify-between text-gray-300">Highest: <span
-                      class="text-primary font-bold">91%</span></li>
+                  <li class="flex justify-between text-gray-300">Marks: <span class="text-white font-bold">82%</span></li>
+                  <li class="flex justify-between text-gray-300">Average: <span class="text-accent font-bold">76%</span></li>
+                  <li class="flex justify-between text-gray-300">Highest: <span class="text-primary font-bold">91%</span></li>
                 </ul>
               </div>
             </div>
           </div>
         </section>
 
+        <!-- Personal results -->
         <section
           class="bg-bg1/15 rounded-3xl p-6 pt-4 flex flex-col flex-1 overflow-hidden border border-white/5 shadow-2xl">
           <h2 class="mb-2 text-2xl font-semibold text-center shrink-0">Result</h2>
@@ -124,6 +235,7 @@
           </div>
         </section>
       </div>
+      }
 
     </div>
   </div>
