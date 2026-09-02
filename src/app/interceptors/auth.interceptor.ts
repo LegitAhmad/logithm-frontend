@@ -9,45 +9,30 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (req.url.includes('/auth/refresh')) {
-    return next(req);
-  }
+  // The refresh token lives in an httpOnly cookie — every request needs
+  // withCredentials so the browser actually sends/receives it cross-origin.
+  const credReq = req.clone({ withCredentials: true });
 
-  if (req.url.includes('/auth/login') || req.url.includes('/auth/signup')) {
-    return next(req);
+  if (
+    credReq.url.includes('/auth/refresh') ||
+    credReq.url.includes('/auth/login') ||
+    credReq.url.includes('/auth/signup')
+  ) {
+    return next(credReq);
   }
 
   const accessToken = authService.getAccessToken();
 
-  // If no token, proceed without auth header
-  if (!accessToken) {
-    return next(req);
-  }
-
-  // Clone request with auth header
-  const authReq = req.clone({
-    setHeaders: {
-      Authorization: `Bearer ${accessToken}`,
-    },
-  });
+  const authReq = accessToken
+    ? credReq.clone({ setHeaders: { Authorization: `Bearer ${accessToken}` } })
+    : credReq;
 
   return next(authReq).pipe(
     catchError((error) => {
-      // Handle 401 - try to refresh token
+      // Handle 401 - try to refresh token via the httpOnly cookie
       if (error.status === 401) {
-        const refreshToken = authService.getRefreshToken();
-
-        if (!refreshToken) {
-          authService.clearTokens();
-          void router.navigate(['/login']);
-          return throwError(() => error);
-        }
-
-        // Attempt token refresh
         return authService.refreshAccessToken().pipe(
           switchMap((tokens) => {
-            authService.storeTokens(tokens);
-
             // Retry original request with new token
             const retryReq = authReq.clone({
               setHeaders: {

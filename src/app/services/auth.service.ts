@@ -1,16 +1,14 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { Observable, map, tap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
 
 const ACCESS_TOKEN_KEY = 'accessToken';
-const REFRESH_TOKEN_KEY = 'refreshToken';
 
 export interface AuthTokens {
   accessToken: string;
-  refreshToken: string;
 }
 
 export interface LoginPayload {
@@ -50,31 +48,20 @@ export class AuthService {
   private readonly platformId = inject(PLATFORM_ID);
 
   readonly accessToken = signal<string | null>(this.getInitialToken(ACCESS_TOKEN_KEY));
-  readonly refreshToken = signal<string | null>(this.getInitialToken(REFRESH_TOKEN_KEY));
   readonly user = signal<User | null>(null);
   readonly isAuthenticated = computed(() => !!this.accessToken());
-
-  constructor() {
-    // Sync signals with localStorage on initialization if in browser
-    if (isPlatformBrowser(this.platformId)) {
-      const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-      const refresh = localStorage.getItem(REFRESH_TOKEN_KEY);
-      if (token) this.accessToken.set(token);
-      if (refresh) this.refreshToken.set(refresh);
-    }
-  }
 
   private getInitialToken(key: string): string | null {
     return isPlatformBrowser(this.platformId) ? localStorage.getItem(key) : null;
   }
 
+  // The refresh token itself never touches JS — it lives in an httpOnly
+  // cookie the backend sets/reads. We only ever persist the access token.
   private setSession(tokens: AuthTokens): void {
     this.accessToken.set(tokens.accessToken);
-    this.refreshToken.set(tokens.refreshToken);
-    
+
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem(ACCESS_TOKEN_KEY, tokens.accessToken);
-      localStorage.setItem(REFRESH_TOKEN_KEY, tokens.refreshToken);
     }
   }
 
@@ -120,13 +107,12 @@ export class AuthService {
       );
   }
 
+  // No body needed — the refresh token rides along as an httpOnly cookie
+  // (see authInterceptor, which sets withCredentials on every request).
   refreshAccessToken(): Observable<AuthTokens> {
-    const refreshToken = this.getRefreshToken();
-    return this.http.post<AuthTokens>(`${environment.apiBaseUrl}/auth/refresh`, {
-      refreshToken,
-    }).pipe(
-      tap(tokens => this.setSession(tokens))
-    );
+    return this.http
+      .post<AuthTokens>(`${environment.apiBaseUrl}/auth/refresh`, {})
+      .pipe(tap((tokens) => this.setSession(tokens)));
   }
 
   storeTokens(tokens: AuthTokens): void {
@@ -143,28 +129,22 @@ export class AuthService {
     return null;
   }
 
-  getRefreshToken(): string | null {
-    const token = this.refreshToken();
-    if (token) return token;
-
-    if (isPlatformBrowser(this.platformId)) {
-      return localStorage.getItem(REFRESH_TOKEN_KEY);
-    }
-    return null;
-  }
-
   clearTokens(): void {
     this.accessToken.set(null);
-    this.refreshToken.set(null);
     this.user.set(null);
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem(ACCESS_TOKEN_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
     }
   }
 
+  // Clears the local access token immediately, and asks the backend to
+  // clear the httpOnly refresh cookie so it can't silently re-auth later.
   logout(): void {
-    this.clearTokens();
+    const clear = () => this.clearTokens();
+    this.http.post(`${environment.apiBaseUrl}/auth/logout`, {}).subscribe({
+      next: clear,
+      error: clear,
+    });
   }
 
   private resolveUser(response: UserResponse): User {

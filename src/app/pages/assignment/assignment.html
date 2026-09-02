@@ -5,12 +5,31 @@
 
         <div class="lg:col-span-3 flex flex-col gap-6 h-full overflow-hidden">
 
+            @if (assignment(); as a) {
+            <section class="bg-bg1/15 rounded-3xl p-4 shrink-0 border border-white/5 flex items-center justify-between gap-4">
+                <div class="min-w-0">
+                    <h1 class="text-lg font-bold text-white truncate">{{ a.title }}</h1>
+                    <span class="text-[10px] uppercase tracking-widest font-bold"
+                        [class.text-gray-500]="a.status === 'draft'"
+                        [class.text-primary]="a.status !== 'draft'">
+                        {{ a.status === 'draft' ? 'Draft — only visible to you' : a.realStatus }}
+                    </span>
+                </div>
+                @if (a.status === 'draft') {
+                <button (click)="publishAssignment()" [disabled]="isPublishing()"
+                    class="disabled:opacity-50 disabled:cursor-not-allowed bg-primary hover:brightness-110 px-5 py-2 rounded-xl text-black text-xs font-bold shadow-md shrink-0 cursor-pointer">
+                    {{ isPublishing() ? 'Publishing…' : 'Publish' }}
+                </button>
+                }
+            </section>
+            }
+
             <section class="bg-bg1/15 rounded-3xl p-4 shrink-0 border border-white/5">
                 <div class="flex gap-3 overflow-x-auto pb-2 custom-scrollbar no-scrollbar">
-                    @for (cat of categories; track cat) {
-                    <button (click)="setCategory(cat)" [class.bg-primary]="selectedCategory === cat"
-                        [class.text-black]="selectedCategory === cat" [class.bg-white/5]="selectedCategory !== cat"
-                        [class.text-gray-400]="selectedCategory !== cat"
+                    @for (cat of categories(); track cat) {
+                    <button (click)="setCategory(cat)" [class.bg-primary]="selectedCategory() === cat"
+                        [class.text-black]="selectedCategory() === cat" [class.bg-white/5]="selectedCategory() !== cat"
+                        [class.text-gray-400]="selectedCategory() !== cat"
                         class="px-4 py-1 text-sm font-medium rounded-full transition-all cursor-pointer">
                         {{ cat }}
                     </button>
@@ -53,7 +72,7 @@
                 </div>
 
                 <div class="space-y-3 overflow-y-auto pr-2 pb-2 custom-scrollbar flex-1">
-                    @for (q of filteredQuestions; track q._id; let i = $index) {
+                    @for (q of filteredQuestions(); track q._id; let i = $index) {
                     <div [routerLink]="['/problem-detail', q._id]">
                         <div
                             class="grid grid-cols-12 items-center bg-primary/5 hover:bg-bg3 border border-white/5 rounded-2xl p-4 transition-all cursor-pointer group shadow-[0_5px_3px_rgba(0,0,0,0.5)]">
@@ -79,12 +98,12 @@
 
                             <div class="col-span-2 text-right">
                                 <span class="text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider"
-                                    [class.text-green-400]="q.difficulty === 'Easy'"
-                                    [class.bg-green-400/10]="q.difficulty === 'Easy'"
-                                    [class.text-yellow-500]="q.difficulty === 'Medium'"
-                                    [class.bg-yellow-500/10]="q.difficulty === 'Medium'"
-                                    [class.text-red-400]="q.difficulty === 'Hard'"
-                                    [class.bg-red-400/10]="q.difficulty === 'Hard'">
+                                    [class.text-green-400]="q.difficulty === 'easy'"
+                                    [class.bg-green-400/10]="q.difficulty === 'easy'"
+                                    [class.text-yellow-500]="q.difficulty === 'medium'"
+                                    [class.bg-yellow-500/10]="q.difficulty === 'medium'"
+                                    [class.text-red-400]="q.difficulty === 'hard'"
+                                    [class.bg-red-400/10]="q.difficulty === 'hard'">
                                     {{ q.difficulty }}
                                 </span>
                             </div>
@@ -161,7 +180,7 @@
     </button>
 </div>
 
-    @if (isModalOpen) {
-        <app-problem-creation-modal (close)="closeModal()"></app-problem-creation-modal>
+    @if (isModalOpen()) {
+        <app-problem-creation-modal [assignmentId]="assignmentId" (close)="closeModal()"></app-problem-creation-modal>
     }
 </div>

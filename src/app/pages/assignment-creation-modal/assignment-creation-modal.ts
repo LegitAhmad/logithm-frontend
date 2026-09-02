@@ -23,10 +23,12 @@ export class AssignmentCreationModal {
 
   onCreate() {
     if (this.assignmentTitle().trim() && this.courseId) {
+      // Assignments are always created as drafts on the backend — the
+      // creator adds questions, then explicitly publishes from the
+      // assignment page once it's ready for students.
       this.assignmentsService.createAssignment({
         title: this.assignmentTitle().trim(),
         courseId: this.courseId,
-        status: 'published'
       }).subscribe({
         next: () => {
           this.assignmentCreated.emit();

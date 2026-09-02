@@ -48,7 +48,7 @@
               </div>
               <div class="min-w-0">
                 <div class="flex items-center gap-2">
-                  <h3 class="text-md font-medium truncate">{{ item.title || item.name }}</h3>
+                  <h3 class="text-md font-medium truncate">{{ item.title }}</h3>
                   @if (isCreator() && item.status === 'draft') {
                     <span class="bg-gray-700 text-gray-300 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-tighter">Draft</span>
                   }

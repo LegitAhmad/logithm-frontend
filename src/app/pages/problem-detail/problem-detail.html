@@ -41,12 +41,18 @@
         </div>
 
         <div class="p-3 flex justify-between items-center bg-black/10 border-t border-white/10 shrink-0">
-          <span class="text-[9px] text-gray-500 uppercase">Ready to test</span>
+          <span class="text-[9px] text-gray-500 uppercase">
+            @if (submitError()) { {{ submitError() }} } @else { Ready to test }
+          </span>
           <div class="flex gap-2">
-            <button (click)="runTest()"
-              class="text-gray-300 hover:text-white px-3 py-1.5 text-xs font-medium rounded-lg">Run</button>
-            <button (click)="submitCode()"
-              class="bg-primary hover:brightness-110 px-4 py-1.5 rounded-lg text-black text-xs font-bold shadow-md">Submit</button>
+            <button (click)="runTest()" [disabled]="isRunning() || isSubmitting()"
+              class="disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 hover:text-white px-3 py-1.5 text-xs font-medium rounded-lg cursor-pointer">
+              {{ isRunning() ? 'Running…' : 'Run' }}
+            </button>
+            <button (click)="submitCode()" [disabled]="isRunning() || isSubmitting()"
+              class="disabled:opacity-50 disabled:cursor-not-allowed bg-primary hover:brightness-110 px-4 py-1.5 rounded-lg text-black text-xs font-bold shadow-md cursor-pointer">
+              {{ isSubmitting() ? 'Submitting…' : 'Submit' }}
+            </button>
           </div>
         </div>
       </section>
@@ -96,7 +102,7 @@
               <div>
                 <label class="text-[9px] text-gray-500 uppercase">Expected</label>
                 <div class="bg-white/5 border border-white/10 rounded-lg p-2 font-mono text-gray-200">
-                  {{ activeTest.expectedOutput || activeTest.expected }}
+                  {{ activeTest.expectedOutput }}
                 </div>
               </div>
 
@@ -111,27 +117,35 @@
                 Result
               </label>
 
-              @if (testResults) {
+              @if (testResults(); as results) {
 
               <div class="flex items-center gap-2">
-                <span class="text-green-400 text-xs font-semibold">
-                  {{ testResults.status }}
+                <span class="text-xs font-semibold" [class.text-green-400]="activeResult?.passed"
+                  [class.text-red-400]="activeResult && !activeResult.passed">
+                  {{ activeResult?.verdict || (activeResult?.passed ? 'Accepted' : 'Wrong Answer') }}
                 </span>
 
                 <span class="text-gray-500 text-[9px]">
-                  {{ testResults.runtime }}
+                  Score: {{ results.score }} / {{ results.maxScore }}
                 </span>
               </div>
 
+              @if (activeResult) {
               <div>
                 <label class="text-[9px] text-gray-500 uppercase">
                   Output
                 </label>
 
-                <div class="bg-white/5 border border-white/10 rounded-lg p-2 font-mono text-green-200 text-[11px]">
-                  {{ testResults.output }}
+                <div class="bg-white/5 border border-white/10 rounded-lg p-2 font-mono text-[11px]"
+                  [class.text-green-200]="activeResult.passed" [class.text-red-200]="!activeResult.passed">
+                  {{ activeResult.stdout || activeResult.stderr || activeResult.compileOutput || '(no output)' }}
                 </div>
               </div>
+              } @else {
+              <div class="text-gray-600 text-[10px] italic">
+                This result belongs to a hidden test case — no output shown here.
+              </div>
+              }
 
               }
 

@@ -189,26 +189,14 @@ export class Dashboard implements OnInit {
       courseName: course.name,
       tasks: assignments.map((a) => ({
         id: a._id,
-        title: a.title ?? a.name ?? 'Untitled assignment',
+        title: a.title || 'Untitled assignment',
         dueLabel: this.formatDueLabel(a),
       })),
     };
   }
 
   private formatDueLabel(assignment: Assignment): string {
-    if (assignment.dueTime && assignment.dueDate) {
-      return `${assignment.dueTime} ${assignment.dueDate}`;
-    }
-
-    if (assignment.dueAt) {
-      return assignment.dueAt;
-    }
-
-    if (assignment.dueDate) {
-      return assignment.dueDate;
-    }
-
-    return 'No due date';
+    return assignment.deadline ? new Date(assignment.deadline).toLocaleString() : 'No due date';
   }
 
   private extractFavoriteCourseIds(user: AuthUser): Set<string> {

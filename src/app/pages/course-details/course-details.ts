@@ -82,10 +82,7 @@ export class CourseDetails implements OnInit {
   }
 
   getDueLabel(assignment: Assignment): string {
-    if (assignment.dueAt) {
-      return new Date(assignment.dueAt).toLocaleString();
-    }
-    return assignment.dueDate ? `${assignment.dueTime || ''} ${assignment.dueDate}` : 'No due date';
+    return assignment.deadline ? new Date(assignment.deadline).toLocaleString() : 'No due date';
   }
 
   openAddAssignmentPopup() {

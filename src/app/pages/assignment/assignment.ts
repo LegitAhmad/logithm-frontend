@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Navbar } from '../../components/navbar/navbar';
 import { RouterLink, ActivatedRoute } from "@angular/router";
@@ -20,13 +20,14 @@ export class Assignment implements OnInit {
   private platformId = inject(PLATFORM_ID);
 
   assignmentId: string | null = null;
-  assignment: AssignmentData | null = null;
-  allQuestions: Question[] = [];
-  
-  isModalOpen: boolean = false;
+  assignment = signal<AssignmentData | null>(null);
+  allQuestions = signal<Question[]>([]);
+  isPublishing = signal(false);
+
+  isModalOpen = signal(false);
   isHovered = false;
-  selectedCategory = 'All Topics';
-  categories: string[] = ['All Topics'];
+  selectedCategory = signal('All Topics');
+  categories = signal<string[]>(['All Topics']);
 
   ngOnInit() {
     if (isPlatformBrowser(this.platformId)) {
@@ -41,7 +42,7 @@ export class Assignment implements OnInit {
   fetchAssignment() {
     if (!this.assignmentId) return;
     this.assignmentsService.getAssignment(this.assignmentId).subscribe({
-      next: (data) => this.assignment = data,
+      next: (data) => this.assignment.set(data),
       error: (err) => console.error('Error fetching assignment', err)
     });
   }
@@ -50,7 +51,7 @@ export class Assignment implements OnInit {
     if (!this.assignmentId) return;
     this.questionsService.getAssignmentQuestions(this.assignmentId).subscribe({
       next: (questions) => {
-        this.allQuestions = questions;
+        this.allQuestions.set(questions);
         this.updateCategories(questions);
       },
       error: (err) => console.error('Error fetching questions', err)
@@ -64,23 +65,40 @@ export class Assignment implements OnInit {
         q.tags.forEach(tag => cats.add(tag));
       }
     });
-    this.categories = Array.from(cats);
+    this.categories.set(Array.from(cats));
+  }
+
+  publishAssignment() {
+    if (!this.assignmentId || this.isPublishing()) return;
+
+    this.isPublishing.set(true);
+    this.assignmentsService.publishAssignment(this.assignmentId).subscribe({
+      next: (updated) => {
+        this.assignment.set(updated);
+        this.isPublishing.set(false);
+      },
+      error: (err) => {
+        console.error('Error publishing assignment', err);
+        this.isPublishing.set(false);
+      },
+    });
   }
 
   openAddProblemPopup() {
-    this.isModalOpen = true;
+    this.isModalOpen.set(true);
   }
 
   closeModal() {
-    this.isModalOpen = false;
+    this.isModalOpen.set(false);
     this.fetchQuestions();
   }
 
-  // This getter ensures the template always has the filtered list
-  get filteredQuestions() {
-    if (this.selectedCategory === 'All Topics') return this.allQuestions;
-    return this.allQuestions.filter(q => q.tags?.includes(this.selectedCategory));
-  }
+  readonly filteredQuestions = computed(() => {
+    const category = this.selectedCategory();
+    const questions = this.allQuestions();
+    if (category === 'All Topics') return questions;
+    return questions.filter((q) => q.tags?.includes(category));
+  });
 
   // Statistics data
   stats = {
@@ -109,6 +127,6 @@ export class Assignment implements OnInit {
 
   // Method to change category from the UI
   setCategory(category: string) {
-    this.selectedCategory = category;
+    this.selectedCategory.set(category);
   }
 }

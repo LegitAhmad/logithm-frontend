@@ -33,7 +33,7 @@
                 Cancel
             </button>
 
-            <button (click)="onCreate()" routerLink="/problem-creation" [disabled]="!problemTitle().trim()"
+            <button (click)="onCreate()" [disabled]="!problemTitle().trim()"
                 class="disabled:opacity-50 disabled:cursor-not-allowed px-10 py-3.5 rounded-full bg-primary text-bg1 text-xs font-black uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20 cursor-pointer">
                 Create Problem
             </button>
