@@ -1,130 +1,14 @@
-<div class="h-screen flex flex-col bg-dashboard-grad text-white overflow-hidden">
-  <app-navbar />
-
-  <div class="flex-1 flex flex-col px-8 pb-6 mt-[140px] h-full overflow-hidden">
-
-    @if (isCreator()) {
-    <div class="flex justify-end items-center pb-2 pr-8 shrink-0">
-      <button (click)="openAddAssignmentPopup()"
-        class="text-primary text-6xl font-light leading-none hover:scale-110 transition-transform cursor-pointer">
-        +
-      </button>
-    </div>
-    }
-
-    @if (isModalOpen()) {
-    <app-assignment-creation-modal 
-      [courseId]="courseId" 
-      (close)="closeModal()" 
-      (assignmentCreated)="fetchAssignments()">
-    </app-assignment-creation-modal>
-    }
-
-    <div class="flex-1 grid grid-cols-1 gap-8 lg:grid-cols-2 h-full overflow-hidden">
-
-      <section
-        class="bg-dashboard-grad rounded-3xl p-6 flex flex-col h-full overflow-hidden border border-white/5 shadow-2xl">
-        <div class="mb-6 flex items-end justify-between shrink-0">
-          <h2 class="text-3xl ml-3 font-semibold">{{ course()?.name || 'Assignments' }}</h2>
-          <div class="bg-bg3 flex gap-2 rounded-full p-1">
-            <button
-              class="bg-primary px-4 py-1 text-sm font-medium text-black rounded-full cursor-pointer">Pending</button>
-            <button class="px-4 py-1 text-sm font-medium text-gray-400 cursor-pointer">Completed</button>
-          </div>
-        </div>
-
-        <div class="space-y-4 overflow-y-auto pr-2 custom-scrollbar flex-1">
-          @for (item of assignments(); track item._id) {
-          <div [routerLink]="['/assignment', item._id]"
-            class="bg-primary/5 hover:bg-bg3 flex items-center justify-between rounded-2xl p-4 transition-colors cursor-pointer shadow-[0_5px_3px_rgba(0,0,0,0.5)]">
-            <div class="flex items-center gap-4">
-              <div
-                class="bg-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg font-bold text-black">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-              </div>
-              <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                  <h3 class="text-md font-medium truncate">{{ item.title }}</h3>
-                  @if (isCreator() && item.status === 'draft') {
-                    <span class="bg-gray-700 text-gray-300 text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-tighter">Draft</span>
-                  }
-                </div>
-                <p class="text-xs text-gray-400 truncate">Due: {{ getDueLabel(item) }}</p>
-              </div>
-            </div>
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-500 mr-2" fill="none" viewBox="0 0 24 24"
-              stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </div>
-          } @empty {
-            <div class="text-center py-8 text-gray-400 italic">No assignments found for this course</div>
-          }
-        </div>
-      </section>
-
-      <div class="flex flex-col gap-6 h-full overflow-hidden">
-        <section (mouseenter)="isHovered = true" (mouseleave)="isHovered = false"
-          class="bg-bg1/15 relative rounded-3xl p-6 pt-4 flex flex-col flex-[1.5] overflow-hidden border border-white/5 shadow-2xl">
-          <h2 class=" text-2xl font-semibold text-center shrink-0">Class Statistics</h2>
-          <div class="relative flex items-center justify-center flex-1">
-            <div class="transition-transform duration-500 ease-in-out" [class.-translate-x-24]="isHovered"
-              [class.lg:-translate-x-32]="isHovered">
-              <div class="relative w-36 h-36 flex items-center justify-center">
-                <svg class="absolute w-full h-full -rotate-90" viewBox="0 0 192 192">
-                  <circle cx="96" cy="96" r="80" stroke="#ebd5ab1a" stroke-width="4" fill="none" />
-                  <circle cx="96" cy="96" r="80" stroke="#facc15" stroke-width="12" fill="none" stroke-dasharray="502"
-                    stroke-dashoffset="120" stroke-linecap="round" />
-                </svg>
-                <div class="flex flex-col items-center">
-                  <span class="text-2xl font-bold text-primary">82%</span>
-                  <span class="text-[10px] text-gray-400 uppercase tracking-wider">Score</span>
-                </div>
-              </div>
-            </div>
-            <div class="absolute right-2 lg:right-4 transition-all duration-500" [class.opacity-100]="isHovered"
-              [class.translate-x-0]="isHovered" [class.opacity-0]="!isHovered" [class.translate-x-10]="!isHovered">
-              <div class="bg-bg3 rounded-2xl p-4 shadow-2xl border border-white/5 min-w-[140px]">
-                <h4 class="font-bold text-xs mb-2 border-b border-white/10 pb-1 text-primary">Overview</h4>
-                <ul class="space-y-2 text-[11px]">
-                  <li class="flex justify-between text-gray-300">Marks: <span class="text-white font-bold">82%</span>
-                  </li>
-                  <li class="flex justify-between text-gray-300">Average: <span class="text-accent font-bold">76%</span>
-                  </li>
-                  <li class="flex justify-between text-gray-300">Highest: <span
-                      class="text-primary font-bold">91%</span></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section
-          class="bg-bg1/15 rounded-3xl p-6 pt-4 flex flex-col flex-1 overflow-hidden border border-white/5 shadow-2xl">
-          <h2 class="mb-2 text-2xl font-semibold text-center shrink-0">Result</h2>
-          <div class="space-y-4 overflow-y-auto pr-3 pb-4 custom-scrollbar">
-            <div class="bg-primary/5 rounded-xl p-4 shadow-[0_5px_3px_rgba(0,0,0,0.5)] border border-white/5">
-              <h3 class="mb-1 font-bold text-sm text-gray-200">Mid Project Report</h3>
-              <div class="hover:opacity-70 transition-opacity cursor-pointer flex justify-between text-xs">
-                <span class="text-gray-300">• Your Marks: <b class="text-primary">18/20</b></span>
-                <span class="text-gray-400">Avg: 15 • High: 19</span>
-              </div>
-            </div>
-            <div class="bg-primary/5 rounded-xl p-4 shadow-[0_5px_3px_rgba(0,0,0,0.5)] border border-white/5">
-              <h3 class="mb-1 font-bold text-sm text-gray-200">Lab Manual 2</h3>
-              <div class="hover:opacity-70 transition-opacity cursor-pointer flex justify-between text-xs">
-                <span class="text-gray-300">• Your Marks: <b class="text-primary">18/20</b></span>
-                <span class="text-gray-400">Avg: 15 • High: 19</span>
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
-
-    </div>
-  </div>
-</div>
+<app-navbar />
+<main class="product-page">
+  <a routerLink="/dashboard">Back to courses</a>
+  @if (loading()) { <p role="status">Loading course…</p> }
+  @if (error()) { <div role="alert" class="error">{{error()}} <button (click)="fetchCourse()">Try again</button></div> }
+  @if (course(); as c) {
+    <header class="page-heading"><div><h1>{{c.name}}</h1><p class="muted">{{isCreator() ? 'Manage assignments and share your course with students.' : 'Your assignments, practice problems, and course deadlines.'}}</p></div>@if (isCreator()) { <button class="primary" (click)="isModalOpen.set(true)">Create assignment</button> }</header>
+    @if (isCreator() && c.joinCode) { <section class="panel"><h2>Invite students</h2><p>Share this join code with your class. Students can enter it on their courses page.</p><p class="badge">{{c.joinCode}}</p></section> }
+    <section class="panel"><div class="page-heading"><h2>Assignments</h2><div class="actions" aria-label="Filter assignments"><button (click)="activeView.set('all')" [attr.aria-pressed]="activeView() === 'all'">All</button><button (click)="activeView.set('active')" [attr.aria-pressed]="activeView() === 'active'">Active</button>@if (isCreator()) { <button (click)="activeView.set('draft')" [attr.aria-pressed]="activeView() === 'draft'">My drafts</button> }<button (click)="activeView.set('missed')" [attr.aria-pressed]="activeView() === 'missed'">Closed</button></div></div>
+      @for (item of displayedAssignments(); track item._id) { <article class="list-row"><div><a class="row-title" [routerLink]="['/assignment',item._id]">{{item.title}}</a><div class="metadata"><span class="badge">{{item.realStatus}}</span><span>{{item.questionIds.length}} problems</span><span>Due: {{item.deadline ? (item.deadline | date:'medium') : 'No deadline'}}</span></div></div><a [routerLink]="['/assignment',item._id]">Open assignment</a></article> } @empty { @if (!loading()) { <p class="empty">{{activeView() === 'all' ? 'No assignments are available yet.' : 'No assignments match this filter.'}} {{isCreator() ? 'Create a draft to prepare your next assignment.' : 'Your teacher will publish assignments here.'}}</p> } }
+    </section><a routerLink="/submissions">View your submission history</a>
+  }
+  @if (isModalOpen()) { <app-assignment-creation-modal [courseId]="courseId" (close)="closeModal()" (assignmentCreated)="fetchAssignments()" /> }
+</main>

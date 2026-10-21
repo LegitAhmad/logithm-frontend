@@ -1,230 +1,129 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, DestroyRef, OnInit, PLATFORM_ID, computed, inject, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor-v2';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Navbar } from '../../components/navbar/navbar';
-import { Inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
-import { QuestionsService, Question, TestCase } from '../../services/questions.service';
-import { SubmissionsService, TestCaseResult } from '../../services/submissions.service';
+import { QuestionsService, Question } from '../../services/questions.service';
+import { SubmissionsService, Submission } from '../../services/submissions.service';
+import { AuthService } from '../../services/auth.service';
+import { apiError, starterCode, typeLabel } from '../../services/coding-contract';
 
 @Component({
   selector: 'app-problem-detail',
-  standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MarkdownModule,
-    MonacoEditorModule,
-    Navbar
-  ],
+  imports: [CommonModule, FormsModule, MarkdownModule, MonacoEditorModule, Navbar, RouterLink],
   templateUrl: './problem-detail.html',
   styleUrl: './problem-detail.css',
 })
 export class ProblemDetail implements OnInit {
-  private route = inject(ActivatedRoute);
-  private questionsService = inject(QuestionsService);
-  private submissionsService = inject(SubmissionsService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly questionsService = inject(QuestionsService);
+  private readonly submissionsService = inject(SubmissionsService);
+  private readonly auth = inject(AuthService);
+  private readonly destroyRef = inject(DestroyRef);
+  readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  readonly question = signal<Question | null>(null);
+  readonly isLoading = signal(true);
+  readonly loadError = signal<string | null>(null);
+  readonly language = signal('python');
+  readonly languages = [{ id: 'python', label: 'Python' }, { id: 'javascript', label: 'JavaScript' }, { id: 'typescript', label: 'TypeScript' }, { id: 'go', label: 'Go' }];
+  readonly isRunning = signal(false);
+  readonly isSubmitting = signal(false);
+  readonly busy = computed(() => this.isRunning() || this.isSubmitting());
+  readonly submitError = signal<string | null>(null);
+  readonly storageMessage = signal<string | null>(null);
+  readonly testResults = signal<Submission | null>(null);
+  readonly selectedCase = signal(0);
+  readonly plainEditor = signal(false);
+  readonly activeTest = computed(() => this.question()?.testCases[this.selectedCase()] ?? null);
+  readonly publicResults = computed(() => this.testResults()?.results.filter(result => !result.isHidden) ?? []);
+  readonly activeResult = computed(() => this.publicResults()[this.selectedCase()] ?? null);
+  readonly hiddenResults = computed(() => this.testResults()?.results.filter(result => result.isHidden) ?? []);
+  readonly canEdit = computed(() => !!this.auth.user()?._id && this.auth.user()?._id === this.question()?.ownerId);
+  readonly contractDescription = computed(() => {
+    const execution = this.question()?.execution;
+    return execution ? `${execution.functionName}(${execution.parameters.map(parameter => `${parameter.name}: ${typeLabel(parameter.type)}`).join(', ')}) → ${typeLabel(execution.returnType)}` : null;
+  });
+  code = '';
+  editorOptions = { theme: 'vs-dark', language: 'python', automaticLayout: true, fontSize: 15, fontFamily: 'ui-monospace, monospace', minimap: { enabled: false }, scrollBeyondLastLine: false, padding: { top: 16, bottom: 16 } };
+  private questionId: string | null = null;
+  assignmentId: string | null = null;
 
-  // No language selector in the UI yet — Monaco is hardcoded to Python below.
-  private readonly language = 'python';
-
-  isBrowser: boolean = false;
-  questionId: string | null = null;
-  question = signal<Question | null>(null);
-
-  // Kept as a plain property (not a signal): ngx-monaco-editor-v2's
-  // [(ngModel)] two-way binding needs a settable plain property, not a
-  // WritableSignal. It's still updated safely because every place that
-  // sets it also sets a sibling signal in the same callback tick, which
-  // triggers the change-detection pass that picks this up too.
-  code: string = '';
-
-  // Monaco Options for a writable, responsive editor
-  editorOptions = {
-    theme: 'vs-dark',
-    language: 'python',
-    automaticLayout: true,
-
-    fontSize: 15,
-    fontFamily: 'Inter, monospace',
-    fontLigatures: true,
-
-    minimap: { enabled: false },
-    scrollBeyondLastLine: false,
-
-    smoothScrolling: true,
-    cursorSmoothCaretAnimation: 'on',
-    cursorBlinking: 'smooth',
-    roundedSelection: true,
-    renderLineHighlight: 'all',
-
-    padding: { top: 16, bottom: 16 },
-
-    renderWhitespace: 'selection',
-    cursorWidth: 2,
-    letterSpacing: 0.5,
-
-    scrollbar: {
-      verticalScrollbarSize: 6,
-      horizontalScrollbarSize: 6,
-      useShadows: false
-    },
-
-    overviewRulerBorder: false,
-    hideCursorInOverviewRuler: true,
-
-    folding: true,
-    lineNumbersMinChars: 3
-  };
-
-  markdownContent: string = '';
-  testResults = signal<{ results: TestCaseResult[]; score: number; maxScore: number } | null>(null);
-  selectedCase = 1;
-  isRunning = signal(false);
-  isSubmitting = signal(false);
-  submitError = signal<string | null>(null);
-
-  testCases: TestCase[] = [];
-
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
-    this.isBrowser = isPlatformBrowser(this.platformId);
-  }
-
-  ngOnInit() {
-    if (this.isBrowser) {
-      this.questionId = this.route.snapshot.paramMap.get('id');
-      if (this.questionId) {
-        this.fetchQuestion();
-      }
-    }
-  }
-
-  fetchQuestion() {
-    if (!this.questionId) return;
-    this.questionsService.getQuestion(this.questionId).subscribe({
-      next: (q) => {
-        this.code = q.functionSignature || '';
-        this.markdownContent = q.descriptionMd || '';
-        this.testCases = q.testCases || [];
-        this.question.set(q);
-      },
-      error: (err) => console.error('Error fetching question', err)
+  ngOnInit(): void {
+    if (!this.isBrowser) return;
+    this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(params => {
+      this.questionId = params.get('id');
+      this.assignmentId = this.route.snapshot.queryParamMap.get('assignmentId');
+      this.question.set(null);
+      this.testResults.set(null);
+      this.selectedCase.set(0);
+      this.fetchQuestion();
     });
   }
 
-  private themeInitialized = false;
-
-  async onEditorInit(editor: any) {
-    if (!this.isBrowser) return;
-
-    const monaco = await import('monaco-editor');
-
-    // Define theme if not already defined
-    if (!this.themeInitialized) {
-      monaco.editor.defineTheme('logithm-theme', {
-        base: 'vs-dark', // Changed from 'vs' to 'vs-dark'
-        inherit: true,
-        rules: [
-          { token: 'keyword', foreground: 'ebd5ab' },
-          { token: 'string', foreground: 'facc15' },
-          { token: 'comment', foreground: '6B7280', fontStyle: 'italic' },
-          { token: 'number', foreground: 'facc15' }
-        ],
-        colors: {
-          // Use transparency to let the CSS background show through
-          'editor.background': '#00000000',
-          'editorGutter.background': '#00000000',
-          'editor.lineHighlightBackground': '#ffffff05',
-
-          'editor.foreground': '#ffffff',
-          'editorCursor.foreground': '#facc15',
-          'editorLineNumber.foreground': '#4b5563',
-          'editorLineNumber.activeForeground': '#facc15',
-
-          // Clean up borders
-          'editor.border': '#00000000',
-          'editorBracketMatch.background': '#ffffff10',
-          'editorBracketMatch.border': '#facc15'
-        }
-      });
-
-      this.themeInitialized = true;
-    }
-
-    // 🔥 IMPORTANT — Apply theme AFTER small delay
-    setTimeout(() => {
-      monaco.editor.setTheme('logithm-theme');
-    }, 0);
+  fetchQuestion(): void {
+    if (!this.questionId) { this.isLoading.set(false); this.loadError.set('Choose a problem from the problem bank.'); return; }
+    this.isLoading.set(true);
+    this.loadError.set(null);
+    this.questionsService.getQuestion(this.questionId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: question => {
+        this.question.set({ ...question, testCases: question.testCases.filter(test => !test.isHidden) });
+        this.restoreCode();
+        this.isLoading.set(false);
+      },
+      error: error => { this.loadError.set(apiError(error)); this.isLoading.set(false); },
+    });
   }
 
-  runTest(): void {
-    if (!this.questionId || this.testCases.length === 0 || this.isRunning()) return;
-
-    this.isRunning.set(true);
+  changeLanguage(language: string): void {
+    if (this.busy() || !this.languages.some(entry => entry.id === language)) return;
+    this.persistCode(this.code);
+    this.language.set(language);
+    this.editorOptions = { ...this.editorOptions, language };
+    this.restoreCode();
+    this.testResults.set(null);
     this.submitError.set(null);
-
-    this.submissionsService
-      .run({ questionId: this.questionId, language: this.language, code: this.code })
-      .subscribe({
-        next: (submission) => {
-          this.testResults.set({
-            results: submission.results,
-            score: submission.score,
-            maxScore: submission.maxScore,
-          });
-          this.isRunning.set(false);
-        },
-        error: (err) => {
-          console.error('Error running code', err);
-          this.submitError.set(this.readErrorMessage(err));
-          this.isRunning.set(false);
-        },
-      });
   }
 
-  submitCode(): void {
-    if (!this.questionId || this.isSubmitting()) return;
+  updateCode(code: string): void {
+    this.code = code;
+    this.persistCode(code);
+  }
 
-    this.isSubmitting.set(true);
+  resetCode(): void {
+    const execution = this.question()?.execution;
+    if (!execution || this.busy()) return;
+    if (this.isBrowser && !window.confirm('Replace this language’s saved draft with the starter function?')) return;
+    this.updateCode(starterCode(execution, this.language()));
+  }
+
+  private restoreCode(): void {
+    const execution = this.question()?.execution;
+    if (!execution) { this.code = ''; return; }
+    try { this.code = localStorage.getItem(`logithm:draft:${this.questionId}:${this.language()}`) ?? starterCode(execution, this.language()); }
+    catch { this.code = starterCode(execution, this.language()); this.storageMessage.set('Browser storage is unavailable. Keep a copy of your solution before leaving.'); }
+  }
+
+  private persistCode(code: string): void {
+    if (!this.isBrowser || !this.questionId) return;
+    try { localStorage.setItem(`logithm:draft:${this.questionId}:${this.language()}`, code); }
+    catch { this.storageMessage.set('Your draft could not be saved in this browser. Keep a copy before leaving.'); }
+  }
+
+  execute(mode: 'run' | 'submit'): void {
+    if (!this.questionId || !this.question()?.execution || this.busy()) return;
+    if (!this.code.trim()) { this.submitError.set('Write a function before running your solution.'); return; }
+    this.isRunning.set(mode === 'run');
+    this.isSubmitting.set(mode === 'submit');
     this.submitError.set(null);
-
-    this.submissionsService
-      .submit({ questionId: this.questionId, language: this.language, code: this.code })
-      .subscribe({
-        next: (submission) => {
-          this.testResults.set({
-            results: submission.results,
-            score: submission.score,
-            maxScore: submission.maxScore,
-          });
-          this.isSubmitting.set(false);
-        },
-        error: (err) => {
-          console.error('Error submitting code', err);
-          this.submitError.set(this.readErrorMessage(err));
-          this.isSubmitting.set(false);
-        },
-      });
-  }
-
-  // The active test result for the currently selected case, when the last
-  // run's results align 1:1 with the visible test cases (i.e. "Run", not
-  // "Submit" — submissions also grade hidden cases, so indices can differ).
-  get activeResult(): TestCaseResult | null {
-    const results = this.testResults();
-    if (!results) return null;
-    return results.results[this.selectedCase - 1] ?? null;
-  }
-
-  private readErrorMessage(error: unknown): string {
-    const payload = (error as { error?: unknown })?.error;
-    if (payload && typeof payload === 'object' && 'message' in payload) {
-      const message = (payload as { message?: unknown }).message;
-      if (typeof message === 'string') return message;
-    }
-    return 'Something went wrong. Please try again.';
+    this.testResults.set(null);
+    const payload = { questionId: this.questionId, assignmentId: this.assignmentId ?? undefined, language: this.language(), code: this.code };
+    const request = mode === 'run' ? this.submissionsService.run(payload) : this.submissionsService.submit(payload);
+    request.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: submission => { this.testResults.set(submission); this.isRunning.set(false); this.isSubmitting.set(false); },
+      error: error => { this.submitError.set(apiError(error)); this.isRunning.set(false); this.isSubmitting.set(false); },
+    });
   }
 }

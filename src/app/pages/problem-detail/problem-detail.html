@@ -1,168 +1,51 @@
-<div class="h-screen flex flex-col bg-dashboard-grad text-white overflow-hidden">
-
-  <app-navbar />
-
-  <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 pb-4 mt-[110px] h-full overflow-hidden">
-
-    <!-- ================= DESCRIPTION ================= -->
-    <section
-      class="lg:col-span-4 bg-bg1/15 rounded-2xl border border-white/5 flex flex-col h-full overflow-hidden shadow-xl">
-
-      <div class="p-4 border-b border-white/10 shrink-0">
-        <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">
-          Description
-        </h2>
-      </div>
-
-      <div class="p-4 overflow-y-auto custom-scrollbar flex-1 prose prose-invert prose-sm max-w-none">
-        <markdown [data]="markdownContent"></markdown>
-      </div>
-
-    </section>
-
-    <!-- ================= CODE + RESULTS ================= -->
-    <div class="lg:col-span-8 flex flex-col gap-4 h-full overflow-hidden">
-
-      <!-- ================= CODE EDITOR ================= -->
-      <section class="flex-[2] bg-bg1/15 rounded-2xl border border-white/10 flex flex-col shadow-xl overflow-hidden">
-
-        <div class="px-4 py-3 border-b border-white/10 bg-bg1/15 shrink-0">
-          <span class="text-[11px] font-semibold text-gray-400 uppercase tracking-widest">
-            Code Editor
-          </span>
-        </div>
-
-        <div class="flex-1 min-h-0 relative">
-          @if (isBrowser) {
-          <ngx-monaco-editor class="absolute inset-0 h-full w-full" [options]="editorOptions" [(ngModel)]="code"
-            (onInit)="onEditorInit($event)">
-          </ngx-monaco-editor>
-          }
-        </div>
-
-        <div class="p-3 flex justify-between items-center bg-black/10 border-t border-white/10 shrink-0">
-          <span class="text-[9px] text-gray-500 uppercase">
-            @if (submitError()) { {{ submitError() }} } @else { Ready to test }
-          </span>
-          <div class="flex gap-2">
-            <button (click)="runTest()" [disabled]="isRunning() || isSubmitting()"
-              class="disabled:opacity-50 disabled:cursor-not-allowed text-gray-300 hover:text-white px-3 py-1.5 text-xs font-medium rounded-lg cursor-pointer">
-              {{ isRunning() ? 'Running…' : 'Run' }}
-            </button>
-            <button (click)="submitCode()" [disabled]="isRunning() || isSubmitting()"
-              class="disabled:opacity-50 disabled:cursor-not-allowed bg-primary hover:brightness-110 px-4 py-1.5 rounded-lg text-black text-xs font-bold shadow-md cursor-pointer">
-              {{ isSubmitting() ? 'Submitting…' : 'Submit' }}
-            </button>
-          </div>
-        </div>
+<app-navbar />
+<main class="workspace">
+  <header class="workspace-heading">
+    <div><a [routerLink]="assignmentId ? ['/assignment', assignmentId] : ['/problems']">{{ assignmentId ? 'Back to assignment' : 'Problem bank' }}</a><h1>{{ question()?.title ?? 'Coding workspace' }}</h1></div>
+    <div class="actions"><a routerLink="/submissions">Submission history</a>@if (canEdit()) { <a routerLink="/problem-creation" [queryParams]="{ questionId: question()?._id, assignmentId: assignmentId }">Edit problem</a> }</div>
+  </header>
+  @if (isLoading()) { <p role="status">Loading problem…</p> }
+  @if (loadError()) { <div class="error" role="alert">{{ loadError() }}<button type="button" (click)="fetchQuestion()">Try again</button></div> }
+  @if (question(); as problem) {
+    @if (!problem.execution) { <p class="error" role="alert">This problem does not have a typed function contract yet. Its author must update it before solutions can be graded.</p> }
+    <div class="workspace-grid">
+      <section class="panel description">
+        <h2>Problem</h2>
+        <div class="prose prose-invert prose-sm"><markdown [data]="problem.descriptionMd" /></div>
+        @if (contractDescription(); as signature) { <h3>Function contract</h3><pre>{{ signature }}</pre><p>Return a value matching this contract. Printing an answer does not count as a return value.</p> }
+        @if (problem.constraints) { <h3>Constraints</h3><p>{{ problem.constraints }}</p> }
+        <h3>Visible examples</h3>
+        @for (test of problem.testCases; track $index) { <div class="example"><h4>Case {{ $index + 1 }}</h4><p>Arguments</p><pre>{{ test.input }}</pre><p>Expected return</p><pre>{{ test.expectedOutput }}</pre></div> }
+        @empty { <p>No visible cases. Submit to evaluate the hidden cases.</p> }
       </section>
-
-      <!-- ================= RESULTS ================= -->
-      <section class="flex-1 bg-bg1/15 rounded-2xl border border-white/5 flex flex-col overflow-hidden shadow-xl">
-
-        <div class="px-4 py-2 border-b border-white/10">
-          <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest">
-            Test Results
-          </h2>
-        </div>
-
-        <div class="p-4 flex-1 flex flex-col gap-3 overflow-hidden">
-
-          <!-- Test Case Buttons -->
-          <div class="flex gap-2 shrink-0">
-
-            @for (test of testCases; track $index) {
-
-            <button (click)="selectedCase = $index + 1" [class.bg-primary/20]="selectedCase === $index + 1"
-              [class.text-primary]="selectedCase === $index + 1"
-              class="bg-white/5 text-gray-400 px-2.5 py-1 text-[10px] rounded-md font-medium hover:bg-white/10 border border-white/5 transition-all cursor-pointer">
-
-              Case {{ $index + 1 }}
-
-            </button>
-
+      <div class="solution">
+        <section class="panel editor-panel">
+          <div class="editor-heading"><div class="language"><label for="language">Language</label><select id="language" [ngModel]="language()" (ngModelChange)="changeLanguage($event)" [disabled]="busy()">@for (entry of languages; track entry.id) { <option [value]="entry.id">{{ entry.label }}</option> }</select></div><div class="actions"><button type="button" (click)="plainEditor.set(!plainEditor())">{{ plainEditor() ? 'Use code editor' : 'Use plain editor' }}</button><button type="button" (click)="resetCode()" [disabled]="busy() || !problem.execution">Reset draft</button></div></div>
+          <div class="code-area">
+            @if (isBrowser && !plainEditor()) { <ngx-monaco-editor [options]="editorOptions" [ngModel]="code" (ngModelChange)="updateCode($event)" /> }
+            @else { <label class="sr-only" for="solution">Solution code</label><textarea id="solution" spellcheck="false" [ngModel]="code" (ngModelChange)="updateCode($event)"></textarea> }
+          </div>
+          @if (storageMessage()) { <p class="notice" role="status">{{ storageMessage() }}</p> }
+          <div class="run-bar"><p>Run checks visible cases. Submit also grades hidden cases.</p><div class="actions"><button type="button" (click)="execute('run')" [disabled]="busy() || !problem.execution || !problem.testCases.length">{{ isRunning() ? 'Running…' : 'Run' }}</button><button type="button" class="primary" (click)="execute('submit')" [disabled]="busy() || !problem.execution">{{ isSubmitting() ? 'Grading…' : 'Submit solution' }}</button></div></div>
+        </section>
+        <section class="panel results" aria-live="polite" [attr.aria-busy]="busy()">
+          <h2>Results</h2>
+          @if (submitError()) { <p class="error" role="alert">{{ submitError() }}</p> }
+          @if (busy()) { <p role="status">{{ isRunning() ? 'Running visible cases…' : 'Grading your solution…' }}</p> }
+          @if (testResults(); as submission) {
+            <p class="score">{{ submission.mode === 'run' ? 'Visible checks' : 'Submission score' }}: {{ submission.score }} / {{ submission.maxScore }} <a [routerLink]="['/submissions', submission._id]">View submission</a></p>
+            <div class="case-tabs" role="group" aria-label="Visible test cases">@for (test of problem.testCases; track $index) { <button type="button" [attr.aria-pressed]="selectedCase() === $index" (click)="selectedCase.set($index)">Case {{ $index + 1 }}</button> }</div>
+            @if (activeResult(); as result) {
+              <h3 [class.accepted]="result.passed" [class.failed]="!result.passed">{{ result.verdict ?? (result.passed ? 'Accepted' : 'Wrong answer') }}</h3>
+              @if (result.diagnostic) { <p class="error">{{ result.diagnostic }}</p> }
+              <div class="value-grid"><div><h4>Expected return</h4><pre>{{ activeTest()?.expectedOutput }}</pre></div><div><h4>Actual return</h4><pre>{{ result.actualOutput ?? '(no valid return)' }}</pre></div></div>
+              @if (result.compileOutput) { <h4>Compiler</h4><pre class="failed">{{ result.compileOutput }}</pre> }
+              @if (result.stderr) { <details><summary>Debug output</summary><pre>{{ result.stderr }}</pre></details> }
             }
-
-          </div>
-
-          <!-- Results Grid -->
-          <div class="grid grid-cols-2 gap-4 flex-1 overflow-hidden text-[11px]">
-
-            <div class="flex flex-col gap-2 overflow-y-auto custom-scrollbar pr-2">
-
-              @if (testCases[selectedCase - 1]; as activeTest) {
-
-              <div>
-                <label class="text-[9px] text-gray-500 uppercase">Input</label>
-                <div class="bg-white/5 border border-white/10 rounded-lg p-2 font-mono text-gray-200">
-                  {{ activeTest.input }}
-                </div>
-              </div>
-
-              <div>
-                <label class="text-[9px] text-gray-500 uppercase">Expected</label>
-                <div class="bg-white/5 border border-white/10 rounded-lg p-2 font-mono text-gray-200">
-                  {{ activeTest.expectedOutput }}
-                </div>
-              </div>
-
-              }
-
-            </div>
-
-            <!-- Output -->
-            <div class="flex flex-col gap-2 overflow-y-auto custom-scrollbar border-l border-white/10 pl-4">
-
-              <label class="text-[9px] text-gray-500 uppercase">
-                Result
-              </label>
-
-              @if (testResults(); as results) {
-
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-semibold" [class.text-green-400]="activeResult?.passed"
-                  [class.text-red-400]="activeResult && !activeResult.passed">
-                  {{ activeResult?.verdict || (activeResult?.passed ? 'Accepted' : 'Wrong Answer') }}
-                </span>
-
-                <span class="text-gray-500 text-[9px]">
-                  Score: {{ results.score }} / {{ results.maxScore }}
-                </span>
-              </div>
-
-              @if (activeResult) {
-              <div>
-                <label class="text-[9px] text-gray-500 uppercase">
-                  Output
-                </label>
-
-                <div class="bg-white/5 border border-white/10 rounded-lg p-2 font-mono text-[11px]"
-                  [class.text-green-200]="activeResult.passed" [class.text-red-200]="!activeResult.passed">
-                  {{ activeResult.stdout || activeResult.stderr || activeResult.compileOutput || '(no output)' }}
-                </div>
-              </div>
-              } @else {
-              <div class="text-gray-600 text-[10px] italic">
-                This result belongs to a hidden test case — no output shown here.
-              </div>
-              }
-
-              }
-
-              @else {
-              <div class="text-gray-600 text-[10px] italic">
-                Click "Run" to see output
-              </div>
-              }
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
-
+            @if (hiddenResults().length) { <h3>Hidden cases</h3><ul>@for (result of hiddenResults(); track result.testCaseIndex) { <li [class.accepted]="result.passed" [class.failed]="!result.passed">Case {{ result.testCaseIndex + 1 }}: {{ result.passed ? 'Accepted' : 'Failed' }} ({{ result.passed ? result.points : 0 }} / {{ result.points }})</li> }</ul><p>Inputs, expected values, returns, and diagnostics are private for hidden cases.</p> }
+          } @else if (!busy()) { <p>Run your function to inspect its return value and type errors here.</p> }
+        </section>
+      </div>
     </div>
-  </div>
-</div>
+  }
+</main>

@@ -15,6 +15,11 @@ export interface Course {
   name: string;
   creatorId: string;
   creator?: { firstName: string; lastName: string };
+  admins: string[];
+  students: string[];
+  joinCode?: string;
+  startDate?: string;
+  endDate?: string;
   isFavorite?: boolean;
 }
 
@@ -56,10 +61,6 @@ export class CoursesService {
             })),
           };
         }),
-        catchError((err) => {
-          console.error('CoursesService: Error in getCourses', err);
-          return of({ limit, offset, data: [] });
-        }),
       );
   }
 
@@ -75,9 +76,12 @@ export class CoursesService {
     return this.http.delete<Course>(`${this.baseUrl}/${courseId}/favorite`);
   }
 
+  enroll(code: string): Observable<Course> {
+    return this.http.post<Course>(`${this.baseUrl}/join`, { code });
+  }
+
   createCourse(courseData: {
     name: string;
-    instructorName?: string;
     startDate: string;
     endDate: string;
   }): Observable<Course> {

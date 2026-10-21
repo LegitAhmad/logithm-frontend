@@ -1,186 +1,30 @@
-<div class="h-screen flex flex-col bg-dashboard-grad text-white overflow-hidden">
-    <app-navbar />
-
-    <div class="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 px-8 pb-6 mt-[110px] h-full overflow-hidden relative">
-
-        <div class="lg:col-span-3 flex flex-col gap-6 h-full overflow-hidden">
-
-            @if (assignment(); as a) {
-            <section class="bg-bg1/15 rounded-3xl p-4 shrink-0 border border-white/5 flex items-center justify-between gap-4">
-                <div class="min-w-0">
-                    <h1 class="text-lg font-bold text-white truncate">{{ a.title }}</h1>
-                    <span class="text-[10px] uppercase tracking-widest font-bold"
-                        [class.text-gray-500]="a.status === 'draft'"
-                        [class.text-primary]="a.status !== 'draft'">
-                        {{ a.status === 'draft' ? 'Draft — only visible to you' : a.realStatus }}
-                    </span>
-                </div>
-                @if (a.status === 'draft') {
-                <button (click)="publishAssignment()" [disabled]="isPublishing()"
-                    class="disabled:opacity-50 disabled:cursor-not-allowed bg-primary hover:brightness-110 px-5 py-2 rounded-xl text-black text-xs font-bold shadow-md shrink-0 cursor-pointer">
-                    {{ isPublishing() ? 'Publishing…' : 'Publish' }}
-                </button>
-                }
-            </section>
-            }
-
-            <section class="bg-bg1/15 rounded-3xl p-4 shrink-0 border border-white/5">
-                <div class="flex gap-3 overflow-x-auto pb-2 custom-scrollbar no-scrollbar">
-                    @for (cat of categories(); track cat) {
-                    <button (click)="setCategory(cat)" [class.bg-primary]="selectedCategory() === cat"
-                        [class.text-black]="selectedCategory() === cat" [class.bg-white/5]="selectedCategory() !== cat"
-                        [class.text-gray-400]="selectedCategory() !== cat"
-                        class="px-4 py-1 text-sm font-medium rounded-full transition-all cursor-pointer">
-                        {{ cat }}
-                    </button>
-                    }
-                </div>
-
-                <div class="flex flex-wrap items-center justify-between gap-4 mt-4 border-t border-white/10 pt-4">
-                    <div class="flex items-center gap-3">
-                        <div class="relative">
-                            <input type="text" placeholder="Search questions..."
-                                class="bg-white/5 border border-white/10 rounded-lg py-1.5 pl-9 pr-4 text-xs text-gray-200 focus:outline-none focus:border-primary/50 w-64">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute left-3 top-2 text-gray-500"
-                                fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        <select
-                            class="bg-white/5 border border-white/10 rounded-lg py-1.5 px-3 text-xs text-gray-400 focus:outline-none cursor-pointer">
-                            <option>Difficulty</option>
-                            <option>Easy</option>
-                            <option>Medium</option>
-                            <option>Hard</option>
-                        </select>
-                    </div>
-
-                    <div class="text-xs text-gray-400">
-                        Solved: <span class="text-primary font-bold">{{ stats.totalSolved }}</span> / {{
-                        stats.totalQuestions }}
-                    </div>
-                </div>
-            </section>
-
-            <section class="bg-bg1/15 rounded-3xl p-6 flex flex-col flex-1 overflow-hidden border border-white/5">
-                <div class="grid grid-cols-12 px-4 mb-4 text-[10px] uppercase tracking-widest text-gray-500 font-bold">
-                    <div class="col-span-1">Status</div>
-                    <div class="col-span-7 ml-1">Title</div>
-                    <div class="col-span-2 text-center">Acceptance</div>
-                    <div class="col-span-2 text-right">Difficulty</div>
-                </div>
-
-                <div class="space-y-3 overflow-y-auto pr-2 pb-2 custom-scrollbar flex-1">
-                    @for (q of filteredQuestions(); track q._id; let i = $index) {
-                    <div [routerLink]="['/problem-detail', q._id]">
-                        <div
-                            class="grid grid-cols-12 items-center bg-primary/5 hover:bg-bg3 border border-white/5 rounded-2xl p-4 transition-all cursor-pointer group shadow-[0_5px_3px_rgba(0,0,0,0.5)]">
-                            <div class="col-span-1 flex justify-start">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-opacity duration-300"
-                                    [class]="getStatusColor(q.status)" viewBox="0 0 20 20" fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </div>
-
-                            <div class="col-span-7">
-                                <h3
-                                    class="text-md font-medium text-gray-200 group-hover:text-white transition-colors truncate">
-                                    {{ i + 1 }}. {{ q.title }}
-                                </h3>
-                            </div>
-
-                            <div class="col-span-2 text-center text-xs text-gray-400 font-medium">
-                                {{ q.acceptance || '0%' }}
-                            </div>
-
-                            <div class="col-span-2 text-right">
-                                <span class="text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider"
-                                    [class.text-green-400]="q.difficulty === 'easy'"
-                                    [class.bg-green-400/10]="q.difficulty === 'easy'"
-                                    [class.text-yellow-500]="q.difficulty === 'medium'"
-                                    [class.bg-yellow-500/10]="q.difficulty === 'medium'"
-                                    [class.text-red-400]="q.difficulty === 'hard'"
-                                    [class.bg-red-400/10]="q.difficulty === 'hard'">
-                                    {{ q.difficulty }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    } @empty {
-                    <div class="text-center py-10 text-gray-500 text-sm italic">No questions found for this category.
-                    </div>
-                    }
-                </div>
-            </section>
-        </div>
-
-        <div class="hidden lg:flex flex-col gap-6 h-full overflow-hidden">
-            <section class="bg-bg1/15 rounded-3xl p-6 flex flex-col items-center border border-white/5 shadow-lg">
-                <h2 class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-6 self-start">Solved Statistics
-                </h2>
-
-                <div class="relative w-36 h-36 flex items-center justify-center mb-6">
-                    <svg class="absolute w-full h-full -rotate-90" viewBox="0 0 192 192">
-                        <circle cx="96" cy="96" r="80" stroke="#ebd5ab1a" stroke-width="4" fill="none" />
-                        <circle cx="96" cy="96" r="80" stroke="#facc15" stroke-width="12" fill="none"
-                            stroke-dasharray="502"
-                            [style.stroke-dashoffset]="502 - (502 * (stats.totalSolved / stats.totalQuestions))"
-                            stroke-linecap="round" />
-                    </svg>
-                    <div class="flex flex-col items-center">
-                        <span class="text-2xl font-bold text-primary">{{ stats.totalSolved }}</span>
-                        <span class="text-[10px] text-gray-500 uppercase tracking-tighter">Solved</span>
-                    </div>
-                </div>
-
-                <div class="w-full space-y-4">
-                    <div class="space-y-1.5">
-                        <div class="flex justify-between text-[11px] font-medium">
-                            <span class="text-green-400">Easy</span>
-                            <span class="text-gray-300">{{ stats.easy.solved }} / {{ stats.easy.total }}</span>
-                        </div>
-                        <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-                            <div class="bg-green-400 h-full rounded-full transition-all duration-700"
-                                [style.width]="getProgressWidth(stats.easy.solved, stats.easy.total)"></div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-1.5">
-                        <div class="flex justify-between text-[11px] font-medium">
-                            <span class="text-yellow-500">Medium</span>
-                            <span class="text-gray-300">{{ stats.medium.solved }} / {{ stats.medium.total }}</span>
-                        </div>
-                        <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
-                            <div class="bg-yellow-500 h-full rounded-full transition-all duration-700"
-                                [style.width]="getProgressWidth(stats.medium.solved, stats.medium.total)"></div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </div>
-
-   <div class="fixed bottom-10 right-10 z-[50]">
-    <button 
-    (click)="openAddProblemPopup()"
-    class="group relative flex items-center justify-center w-16 h-16 bg-white/[0.03] border border-white/10 backdrop-blur-2xl rounded-[1.5rem] shadow-2xl hover:scale-110 active:scale-95 transition-all duration-500 cursor-pointer overflow-visible">
-        
-        <div class="absolute inset-0 rounded-[1.5rem] shadow-[inner_0_1px_1px_rgba(255,255,255,0.1)] group-hover:bg-primary/5 transition-colors"></div>
-        
-        <div class="absolute inset-0 rounded-[1.5rem] bg-primary/0 group-hover:bg-primary/10 blur-xl transition-all duration-500"></div>
-
-        <span class="text-primary text-4xl font-light relative z-10 transition-transform group-hover:rotate-90 duration-500">+</span>
-
-        <span class="absolute right-20 scale-0 group-hover:scale-100 transition-all duration-300 origin-right bg-[#161616]/90 backdrop-blur-2xl text-primary text-[10px] font-bold uppercase tracking-widest px-5 py-3 rounded-2xl border border-white/10 shadow-2xl whitespace-nowrap">
-            Create New Question
-        </span>
-    </button>
-</div>
-
-    @if (isModalOpen()) {
-        <app-problem-creation-modal [assignmentId]="assignmentId" (close)="closeModal()"></app-problem-creation-modal>
+<app-navbar />
+<main class="product-page">
+  @if (loading()) { <p role="status">Loading assignment…</p> }
+  @if (error()) { <div class="error" role="alert">{{error()}} <button (click)="load()">Reload</button></div> }
+  @if (assignment(); as a) {
+    <header class="page-heading"><div><a [routerLink]="['/course',a.courseId]">Back to course</a><h1>{{a.title}}</h1><p class="muted">{{a.description}}</p><div class="metadata"><span class="badge">{{a.realStatus}}</span><span>Starts: {{a.startAt ? (a.startAt | date:'medium') : 'When published'}}</span><span>Due: {{a.deadline ? (a.deadline | date:'medium') : 'No deadline'}}</span></div></div>
+    @if (isOwner() && a.status === 'draft') { <div class="actions"><a class="button primary" routerLink="/problem-creation" [queryParams]="{assignmentId:a._id}">Create problem</a><a class="button" routerLink="/problems" [queryParams]="{assignmentId:a._id}">Choose existing problem</a></div> }</header>
+    @if (isOwner() && a.status === 'draft') {
+      <section class="panel"><h2>Publish assignment</h2><p class="muted">Add problems before publishing. Leave the start empty to open immediately. Published assignments cannot be edited.</p><div class="filters"><label>Start time (optional)<input type="datetime-local" [(ngModel)]="startAt" /></label><label>Deadline (optional)<input type="datetime-local" [(ngModel)]="deadline" /></label><button class="primary" (click)="publishAssignment()" [disabled]="isPublishing() || !a.questionIds.length">{{isPublishing() ? 'Publishing…' : 'Publish assignment'}}</button></div></section>
     }
-</div>
+    @if (isOwner() && a.status === 'published') {
+      <section class="panel">
+        @if (a.realStatus === 'pending') {
+          <h2>Scheduled assignment</h2><p class="muted">Return this assignment to draft before it starts if you need to change its questions or schedule.</p>
+          <button (click)="unpublishAssignment()" [disabled]="isPublishing()">{{isPublishing() ? 'Returning to draft…' : 'Return to draft'}}</button>
+        } @else {
+          <p class="muted">This assignment has started. Its published questions and schedule cannot be changed.</p>
+        }
+      </section>
+    }
+    @if (resultsError()) { <p role="status" class="error">{{resultsError()}}</p> }
+    @if (a.realStatus === 'pending' && !isOwner()) { <section class="panel"><h2>Not open yet</h2><p>Questions become available when this assignment starts.</p></section> }
+    @else {
+      <section class="panel"><div class="page-heading"><h2>Problems</h2><p class="muted">{{solved().size}} solved in this assignment / {{allQuestions().length}}</p></div><div class="filters"><label>Search problems<input type="search" [ngModel]="search()" (ngModelChange)="search.set($event)" /></label><label>Difficulty<select [ngModel]="difficulty()" (ngModelChange)="difficulty.set($event)"><option value="">All difficulties</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select></label></div>
+      @for (q of filteredQuestions(); track q._id) { <article class="list-row"><div><a class="row-title" [routerLink]="['/problem-detail',q._id]" [queryParams]="{assignmentId:a._id}">{{q.title}}</a><div class="metadata"><span>{{q.difficulty}}</span><span>{{q.tags.join(', ')}}</span><span>{{solved().has(q._id) ? 'Solved' : 'Not solved'}}</span></div></div>@if (isOwner() && a.status === 'draft') { <button (click)="removeQuestion(q._id)">Remove from assignment</button> }</article> } @empty { <p class="empty">{{search() || difficulty() ? 'No problems match these filters.' : 'No questions have been added to this assignment.'}}</p> }
+      </section>
+    }
+    <a routerLink="/submissions">View your submission history</a>
+  }
+</main>

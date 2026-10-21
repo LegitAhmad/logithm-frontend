@@ -1,96 +1,45 @@
-import { Component, OnInit, inject, PLATFORM_ID, computed, signal, effect, untracked, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, PLATFORM_ID, signal } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { Navbar } from '../../components/navbar/navbar';
-import { RouterLink, ActivatedRoute } from "@angular/router";
 import { AssignmentCreationModal } from '../assignment-creation-modal/assignment-creation-modal';
 import { AssignmentsService, Assignment } from '../../services/assignments.service';
 import { CoursesService, Course } from '../../services/courses.service';
-import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 
-@Component({
-  selector: 'app-course-details',
-  standalone: true,
-  imports: [Navbar, RouterLink, AssignmentCreationModal, CommonModule],
-  templateUrl: './course-details.html',
-  styleUrl: './course-details.css',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-})
+@Component({ selector: 'app-course-details', imports: [Navbar, RouterLink, AssignmentCreationModal, CommonModule], templateUrl: './course-details.html', styleUrl: '../product-pages.css', changeDetection: ChangeDetectionStrategy.OnPush })
 export class CourseDetails implements OnInit {
-  private route = inject(ActivatedRoute);
-  private assignmentsService = inject(AssignmentsService);
-  private coursesService = inject(CoursesService);
-  private authService = inject(AuthService);
-  private platformId = inject(PLATFORM_ID);
-
-  courseId: string | null = null;
-  course = signal<Course | null>(null);
-  assignments = signal<Assignment[]>([]);
-  isModalOpen = signal(false);
-  isHovered = false;
-
-  isCreator = computed(() => {
-    const user = this.authService.user();
+  private readonly route = inject(ActivatedRoute);
+  private readonly assignmentsService = inject(AssignmentsService);
+  private readonly coursesService = inject(CoursesService);
+  private readonly auth = inject(AuthService);
+  private readonly platformId = inject(PLATFORM_ID);
+  readonly courseId = this.route.snapshot.paramMap.get('id');
+  readonly course = signal<Course | null>(null);
+  readonly assignments = signal<Assignment[]>([]);
+  readonly isModalOpen = signal(false);
+  readonly loading = signal(false);
+  readonly error = signal('');
+  readonly activeView = signal<'all' | 'active' | 'draft' | 'missed'>('all');
+  readonly isCreator = computed(() => {
+    const userId = this.auth.user()?._id;
     const course = this.course();
-    if (!user || !course) return false;
-    
-    // Check both _id and id properties since they might vary between frontend/backend models
-    const userId = (user as any)._id || (user as any).id;
-    return course.creatorId === userId;
+    return !!userId && !!course && (course.creatorId === userId || !!course.admins?.includes(userId));
   });
-
-  constructor() {
-    // Re-fetch assignments whenever isCreator status changes
-    effect(() => {
-      if (!isPlatformBrowser(this.platformId)) return;
-      
-      this.isCreator(); // Register dependency
-      untracked(() => this.fetchAssignments());
-    });
-  }
-
-  ngOnInit() {
-    if (isPlatformBrowser(this.platformId)) {
-      this.courseId = this.route.snapshot.paramMap.get('id');
-      if (this.courseId) {
-        this.fetchCourse();
-        // this.fetchAssignments(); // Handled by the effect
-        this.authService.fetchCurrentUser().subscribe();
-      }
-    }
-  }
-
+  readonly displayedAssignments = computed(() => this.assignments().filter(a => this.activeView() === 'all' || a.realStatus === this.activeView()));
+  ngOnInit() { if (isPlatformBrowser(this.platformId)) this.fetchCourse(); }
   fetchCourse() {
     if (!this.courseId) return;
-    this.coursesService.getCourse(this.courseId).subscribe({
-      next: (course) => this.course.set(course),
-      error: (err) => console.error('Error fetching course', err)
+    this.loading.set(true); this.error.set('');
+    forkJoin({course:this.coursesService.getCourse(this.courseId), user:this.auth.fetchCurrentUser()}).subscribe({
+      next: ({course}) => { this.course.set(course); this.fetchAssignments(); },
+      error: () => { this.error.set('This course is unavailable or you are not enrolled.'); this.loading.set(false); },
     });
   }
-
   fetchAssignments() {
-    const cid = this.courseId || this.route.snapshot.paramMap.get('id');
-    if (!cid) return;
-    
-    // If the user is the creator, fetch all assignments (including drafts)
-    // Otherwise, fetch published assignments only
-    const status = this.isCreator() ? 'all' : undefined;
-    
-    this.assignmentsService.getCourseAssignments(cid, status).subscribe({
-      next: (assignments) => this.assignments.set(assignments),
-      error: (err) => console.error('Error fetching assignments', err)
-    });
+    if (!this.courseId) return;
+    this.assignmentsService.getCourseAssignments(this.courseId).subscribe({ next: rows => { this.assignments.set(rows); this.loading.set(false); }, error: () => { this.error.set('Could not load this course’s assignments.'); this.loading.set(false); } });
   }
-
-  getDueLabel(assignment: Assignment): string {
-    return assignment.deadline ? new Date(assignment.deadline).toLocaleString() : 'No due date';
-  }
-
-  openAddAssignmentPopup() {
-    this.isModalOpen.set(true);
-  }
-
-  closeModal() {
-    this.isModalOpen.set(false);
-    this.fetchAssignments();
-  }
+  closeModal() { this.isModalOpen.set(false); this.fetchAssignments(); }
 }

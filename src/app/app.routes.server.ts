@@ -1,22 +1,10 @@
-import { RenderMode, ServerRoute } from '@angular/ssr';
+import { RenderMode } from '@angular/ssr';
+import type { ServerRoute } from '@angular/ssr';
 
 export const serverRoutes: ServerRoute[] = [
-  // These routes fetch data by :id from the backend at request time, so
-  // there's no fixed set of ids to prerender at build time.
-  {
-    path: 'course/:id',
-    renderMode: RenderMode.Server,
-  },
-  {
-    path: 'assignment/:id',
-    renderMode: RenderMode.Server,
-  },
-  {
-    path: 'problem-detail/:id',
-    renderMode: RenderMode.Server,
-  },
-  {
-    path: '**',
-    renderMode: RenderMode.Prerender
-  }
+  { path: '', renderMode: RenderMode.Prerender },
+  { path: 'login', renderMode: RenderMode.Prerender },
+  { path: 'signup', renderMode: RenderMode.Prerender },
+  // Access tokens and private data belong to the browser session, not the SSR/prerender process.
+  { path: '**', renderMode: RenderMode.Client },
 ];

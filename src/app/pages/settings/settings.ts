@@ -1,9 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, PLATFORM_ID, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { finalize } from 'rxjs';
+import { isPlatformBrowser } from '@angular/common';
 
 import { Navbar } from '../../components/navbar/navbar';
 import { AuthService, User } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 type EditableField = 'username' | 'firstName' | 'lastName';
 
@@ -17,11 +19,20 @@ type EditableField = 'username' | 'firstName' | 'lastName';
 export class Settings {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  readonly isChangingPassword = signal(false);
+  readonly passwordNotice = signal('');
+  readonly passwordForm = this.fb.nonNullable.group({
+    currentPassword: ['', Validators.required],
+    newPassword: ['', [Validators.required, Validators.minLength(8)]],
+    confirmPassword: ['', Validators.required],
+  });
 
   readonly profile = signal<User | null>(null);
   readonly editingField = signal<EditableField | null>(null);
   readonly isSaving = signal(false);
   readonly isUploadingAvatar = signal(false);
+  readonly avatarUploadEnabled = signal(false);
   readonly notice = signal<string | null>(null);
   readonly avatarVersion = signal(0);
 
@@ -40,7 +51,7 @@ export class Settings {
   });
 
   readonly usernameForm = this.fb.nonNullable.group({
-    username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
+    username: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(16), Validators.pattern(/^[a-zA-Z0-9_]+$/)]],
   });
 
   readonly lastNameForm = this.fb.nonNullable.group({
@@ -48,13 +59,14 @@ export class Settings {
   });
 
   constructor() {
-    this.loadProfile();
+    if (isPlatformBrowser(inject(PLATFORM_ID))) this.loadProfile();
   }
 
   loadProfile() {
     this.auth.fetchCurrentUser().subscribe({
       next: (user) => {
         this.profile.set(user);
+        this.avatarUploadEnabled.set(user.avatarUploadEnabled === true);
         this.avatarVersion.set(Date.now());
         this.patchForms(user);
       },
@@ -174,6 +186,21 @@ export class Settings {
       });
 
     input.value = '';
+  }
+
+  changePassword() {
+    if (this.isChangingPassword()) return;
+    this.passwordForm.markAllAsTouched();
+    const values = this.passwordForm.getRawValue();
+    if (this.passwordForm.invalid || values.newPassword !== values.confirmPassword || new TextEncoder().encode(values.newPassword).length > 72) {
+      this.passwordNotice.set('Use at least eight characters (at most 72 UTF-8 bytes), and make sure the new passwords match.');
+      return;
+    }
+    this.isChangingPassword.set(true); this.passwordNotice.set('');
+    this.auth.changePassword(values.currentPassword, values.newPassword).pipe(finalize(() => this.isChangingPassword.set(false))).subscribe({
+      next: () => { this.passwordForm.reset(); void this.router.navigate(['/login'], {queryParams:{passwordChanged:'true'}}); },
+      error: err => this.passwordNotice.set(typeof err.error?.message === 'string' ? err.error.message : 'Could not change your password. Check your current password and try again.'),
+    });
   }
 
   private patchForms(user: User) {

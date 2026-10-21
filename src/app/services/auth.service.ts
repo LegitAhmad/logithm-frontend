@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
-import { Observable, map, tap } from 'rxjs';
+import { Observable, finalize, map, shareReplay, tap } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 import { isPlatformBrowser } from '@angular/common';
@@ -24,11 +24,13 @@ export interface SignupPayload {
 }
 
 export interface User {
+  _id: string;
   username?: string;
   firstName: string;
   lastName: string;
   email: string;
   avatarUrl?: string;
+  avatarUploadEnabled?: boolean;
   favoriteCourses?: Array<string | { _id: string }>;
   favoriteCourseIds?: string[];
   favorites?: Array<string | { _id: string }>;
@@ -46,6 +48,7 @@ export interface UpdateUserPayload {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly platformId = inject(PLATFORM_ID);
+  private refreshInFlight?: Observable<AuthTokens>;
 
   readonly accessToken = signal<string | null>(this.getInitialToken(ACCESS_TOKEN_KEY));
   readonly user = signal<User | null>(null);
@@ -95,6 +98,11 @@ export class AuthService {
       );
   }
 
+  changePassword(currentPassword: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${environment.apiBaseUrl}/auth/password`, { currentPassword, newPassword })
+      .pipe(tap(() => this.clearTokens()));
+  }
+
   uploadAvatar(file: File): Observable<User> {
     const formData = new FormData();
     formData.append('file', file);
@@ -107,12 +115,18 @@ export class AuthService {
       );
   }
 
-  // No body needed — the refresh token rides along as an httpOnly cookie
-  // (see authInterceptor, which sets withCredentials on every request).
+  // The HTTP-only refresh cookie is sent only to our API by authInterceptor.
   refreshAccessToken(): Observable<AuthTokens> {
-    return this.http
-      .post<AuthTokens>(`${environment.apiBaseUrl}/auth/refresh`, {})
-      .pipe(tap((tokens) => this.setSession(tokens)));
+    if (!this.refreshInFlight) {
+      this.refreshInFlight = this.http
+        .post<AuthTokens>(`${environment.apiBaseUrl}/auth/refresh`, {})
+        .pipe(
+          tap((tokens) => this.setSession(tokens)),
+          finalize(() => { this.refreshInFlight = undefined; }),
+          shareReplay({ bufferSize: 1, refCount: false }),
+        );
+    }
+    return this.refreshInFlight;
   }
 
   storeTokens(tokens: AuthTokens): void {
@@ -122,7 +136,7 @@ export class AuthService {
   getAccessToken(): string | null {
     const token = this.accessToken();
     if (token) return token;
-    
+
     if (isPlatformBrowser(this.platformId)) {
       return localStorage.getItem(ACCESS_TOKEN_KEY);
     }

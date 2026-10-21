@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, NonNullableFormBuilder, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { finalize } from 'rxjs';
 
@@ -19,6 +19,7 @@ export class Login {
   private readonly formBuilder = inject(NonNullableFormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  readonly passwordChanged = inject(ActivatedRoute).snapshot.queryParamMap.get('passwordChanged') === 'true';
 
   readonly isLoading = signal(false);
   readonly errorMessage = signal<string | null>(null);
@@ -36,7 +37,6 @@ export class Login {
 
     this.errorMessage.set(null);
     this.isLoading.set(true);
-    console.log(this.form.getRawValue());
 
     this.authService
       .login(this.form.getRawValue())

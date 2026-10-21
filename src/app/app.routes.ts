@@ -1,78 +1,24 @@
-import { Routes } from '@angular/router';
+import type { Routes } from '@angular/router';
 import { Home } from './pages/home/home';
-import { Login } from './pages/auth/login/login';
-import { Signup } from './pages/auth/signup/signup';
-import { Editor } from './pages/editor/editor';
-import { Dashboard } from './pages/dashboard/dashboard';
-import { CourseDetails } from './pages/course-details/course-details';
-import { Settings } from './pages/settings/settings';
 import { authGuard } from './guards/auth.guard';
-import { Assignment } from './pages/assignment/assignment';
-import { ProblemDetail } from './pages/problem-detail/problem-detail';
-import { ProblemCreationPage } from './pages/problem-creation-page/problem-creation-page';
+import { NotFound } from './pages/not-found/not-found';
 
+// Router-selected lazy modules keep forms and coding/authoring dependencies off the public entry bundle.
 export const routes: Routes = [
-  {
-    path: '',
-    component: Home,
-  },
-  {
-    path: 'login',
-    title: 'Logithm | Login',
-    component: Login,
-  },
-  {
-    path: 'signup',
-    title: 'Logithm | Join Now',
-    component: Signup,
-  },
-  {
-    path: 'course/question',
-    title: 'Course | Question',
-    component: Editor,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'dashboard',
-    title: 'Dashboard',
-    component: Dashboard,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'course/:id',
-    title: 'Course',
-    component: CourseDetails,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'settings',
-    title: 'Settings',
-    component: Settings,
-    canActivate: [authGuard],
-  },
-  {
-    path: 'assignment/:id',
-    title: 'Assignment',
-    component: Assignment,
-  },
-  {
-    path: 'assignment',
-    title: 'Assignment',
-    component: Assignment,
-  },
-  {
-    path: 'problem-detail/:id',
-    title: 'Problem Detail',
-    component: ProblemDetail,
-  },
-  {
-    path: 'problem-detail',
-    title: 'Problem Detail',
-    component: ProblemDetail,
-  },
-  {
-    path: 'problem-creation',
-    title: 'Create Problem',
-    component: ProblemCreationPage,
-  },
+  { path: '', component: Home, title: 'Logithm', pathMatch: 'full' },
+  { path: 'login', loadComponent: () => import('./pages/auth/login/login').then(module => module.Login), title: 'Logithm | Login' },
+  { path: 'signup', loadComponent: () => import('./pages/auth/signup/signup').then(module => module.Signup), title: 'Logithm | Join now' },
+  { path: 'course/question', redirectTo: 'problems', pathMatch: 'full' },
+  { path: 'dashboard', loadComponent: () => import('./pages/dashboard/dashboard').then(module => module.Dashboard), title: 'Courses', canActivate: [authGuard] },
+  { path: 'course/:id', loadComponent: () => import('./pages/course-details/course-details').then(module => module.CourseDetails), title: 'Course', canActivate: [authGuard] },
+  { path: 'settings', loadComponent: () => import('./pages/settings/settings').then(module => module.Settings), title: 'Settings', canActivate: [authGuard] },
+  { path: 'assignment/:id', loadComponent: () => import('./pages/assignment/assignment').then(module => module.Assignment), title: 'Assignment', canActivate: [authGuard] },
+  { path: 'assignment', redirectTo: 'dashboard', pathMatch: 'full' },
+  { path: 'problems', loadComponent: () => import('./pages/problem-bank/problem-bank').then(module => module.ProblemBank), title: 'Problem bank', canActivate: [authGuard] },
+  { path: 'problem-detail/:id', loadComponent: () => import('./pages/problem-detail/problem-detail').then(module => module.ProblemDetail), title: 'Problem workspace', canActivate: [authGuard] },
+  { path: 'problem-detail', redirectTo: 'problems', pathMatch: 'full' },
+  { path: 'problem-creation', loadComponent: () => import('./pages/problem-creation-page/problem-creation-page').then(module => module.ProblemCreationPage), title: 'Author problem', canActivate: [authGuard] },
+  { path: 'submissions', loadComponent: () => import('./pages/submission-history/submission-history').then(module => module.SubmissionHistory), title: 'Submission history', canActivate: [authGuard] },
+  { path: 'submissions/:id', loadComponent: () => import('./pages/submission-detail/submission-detail').then(module => module.SubmissionDetail), title: 'Submission results', canActivate: [authGuard] },
+  { path: '**', component: NotFound, title: 'Page not found' },
 ];

@@ -9,9 +9,10 @@ export interface TestCaseResult {
   points: number;
   passed: boolean;
   verdict?: string;
-  stdout?: string;
   stderr?: string;
   compileOutput?: string;
+  actualOutput?: string;
+  diagnostic?: string;
   time?: string;
   memory?: number;
 }

@@ -9,6 +9,7 @@ export type AssignmentRealStatus = 'draft' | 'pending' | 'active' | 'missed';
 
 export interface Assignment {
   _id: string;
+  ownerId: string;
   title: string;
   description: string | null;
   courseId: string;
@@ -47,12 +48,8 @@ export class AssignmentsService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/assignments`;
 
-  getCourseAssignments(courseId: string, status?: 'pending' | 'missed' | 'all'): Observable<Assignment[]> {
-    if (status === 'all') {
-      return this.http.get<Assignment[]>(this.baseUrl, { params: { courseId } });
-    }
-    const params = status ? { status } : undefined;
-
+  getCourseAssignments(courseId: string, status?: 'pending' | 'active' | 'missed' | 'all'): Observable<Assignment[]> {
+    const params = status && status !== 'all' ? { status } : undefined;
     return this.http.get<Assignment[]>(`${this.baseUrl}/course/${courseId}`, { params });
   }
 

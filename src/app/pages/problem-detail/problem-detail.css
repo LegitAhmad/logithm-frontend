@@ -1,12 +1,38 @@
-/* Force the Monaco container to be transparent so the parent's color shows through */
-:host ::ng-deep .monaco-editor,
-:host ::ng-deep .monaco-editor .margin,
-:host ::ng-deep .monaco-editor-background {
-  background-color: transparent !important;
-}
-
-/* Fix the squashed editor issue */
-ngx-monaco-editor {
-  height: 100% !important;
-  width: 100% !important;
-}
+:host { display: block; color: #f3f4f6; }
+.workspace { max-width: 1700px; margin: 0 auto; padding: 110px 24px 32px; }
+.workspace-heading, .editor-heading, .run-bar, .actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { font-size: 28px; font-weight: 650; margin: 8px 0 20px; }
+h2 { font-size: 19px; font-weight: 600; margin-bottom: 16px; }
+h3 { font-size: 16px; font-weight: 600; margin: 24px 0 10px; }
+h4 { font-size: 14px; font-weight: 550; margin: 12px 0 8px; }
+a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 3px; }
+.workspace-grid { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(0, 1.8fr); gap: 20px; align-items: start; }
+.panel { border: 1px solid var(--color-bg3); border-radius: 10px; background: var(--color-bg1); overflow: hidden; min-width: 0; }
+.description, .results { padding: 24px; }
+.description { max-height: calc(100dvh - 190px); overflow-y: auto; position: sticky; top: 100px; }
+.solution { display: grid; gap: 20px; min-width: 0; }
+.editor-heading, .run-bar { padding: 14px 18px; }
+.editor-heading { border-bottom: 1px solid var(--color-bg3); }
+.language { display: flex; align-items: center; gap: 10px; }
+select { background: var(--color-bg4); border: 1px solid var(--color-bg3); border-radius: 6px; color: inherit; padding: 10px; min-height: 44px; }
+.code-area { height: 440px; background: var(--color-bg4); }
+ngx-monaco-editor { display: block; height: 100%; width: 100%; }
+textarea { height: 100%; width: 100%; padding: 20px; font: 15px/1.6 ui-monospace, monospace; color: inherit; background: transparent; resize: vertical; tab-size: 4; }
+button { min-height: 44px; border: 1px solid var(--color-bg3); border-radius: 6px; padding: 10px 14px; font-size: 14px; cursor: pointer; }
+button.primary { color: var(--color-bg4); background: var(--color-primary); font-weight: 650; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button[aria-pressed=true] { color: var(--color-primary); border-color: var(--color-primary); }
+button:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+p { font-size: 14px; line-height: 1.6; color: #c4c8cb; margin: 10px 0; }
+pre { font: 13px/1.6 ui-monospace, monospace; white-space: pre-wrap; overflow-wrap: anywhere; background: var(--color-bg4); padding: 12px; border-radius: 6px; }
+.example { border-top: 1px solid var(--color-bg3); margin-top: 20px; }
+.error, .notice { border: 1px solid currentColor; padding: 12px; border-radius: 6px; overflow-wrap: anywhere; margin-bottom: 16px; }
+.error, .failed { color: #fca5a5; }
+.notice { color: var(--color-primary); }
+.accepted { color: #86efac; }
+.value-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.case-tabs, .actions { display: flex; gap: 8px; justify-content: flex-start; flex-wrap: wrap; }
+summary { padding: 12px 0; cursor: pointer; }
+@media (max-width: 950px) { .workspace-grid { grid-template-columns: minmax(0, 1fr); } .description { position: static; max-height: none; } .workspace { padding: 100px 16px 32px; } .code-area { height: 380px; } }
+@media (max-width: 500px) { .description, .results { padding: 16px; } .value-grid { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .workspace { padding-top: 154px; } }

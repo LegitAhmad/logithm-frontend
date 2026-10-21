@@ -1,0 +1,28 @@
+:host { display: block; color: #f3f4f6; }
+.authoring { max-width: 1500px; margin: 0 auto; padding: 110px 24px 48px; }
+.page-heading, .actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+h1 { font-size: 30px; font-weight: 650; margin-top: 8px; }
+h2 { font-size: 20px; font-weight: 600; margin-bottom: 12px; }
+a { color: var(--color-primary); text-decoration: underline; text-underline-offset: 3px; }
+.authoring-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px; margin-top: 24px; align-items: start; }
+.configuration { display: grid; gap: 20px; min-width: 0; }
+.panel { padding: 24px; background: var(--color-bg1); border: 1px solid var(--color-bg3); border-radius: 12px; min-width: 0; }
+label { display: block; margin: 16px 0 8px; font-size: 14px; font-weight: 550; }
+input:not([type=checkbox]), select, textarea { display: block; width: 100%; padding: 12px; border: 1px solid var(--color-bg3); border-radius: 6px; background: var(--color-bg4); color: inherit; font-size: 15px; }
+textarea { font-family: ui-monospace, monospace; line-height: 1.6; resize: vertical; tab-size: 2; }
+button { min-height: 44px; padding: 10px 16px; border: 1px solid var(--color-bg3); border-radius: 6px; cursor: pointer; }
+button.primary { background: var(--color-primary); color: var(--color-bg4); font-weight: 600; }
+button[aria-pressed=true] { border-color: var(--color-primary); color: var(--color-primary); }
+button:disabled { opacity: .5; cursor: not-allowed; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible, summary:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+p { color: #c4c8cb; line-height: 1.6; font-size: 14px; margin: 10px 0; }
+.error, .notice { padding: 14px 18px; border: 1px solid currentColor; border-radius: 8px; margin-top: 16px; overflow-wrap: anywhere; }
+.error { color: #fca5a5; }
+.notice { color: var(--color-primary); }
+.checkbox { display: flex; align-items: flex-start; gap: 10px; line-height: 1.6; }
+.checkbox input { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; }
+.actions { justify-content: flex-start; margin-top: 16px; }
+summary { cursor: pointer; padding: 12px 0; }
+code { overflow-wrap: anywhere; }
+@media (max-width: 850px) { .authoring-grid { grid-template-columns: minmax(0, 1fr); } .authoring { padding: 100px 16px 32px; } .panel { padding: 18px; } }
+@media (max-width: 600px) { .authoring { padding-top: 154px; } }

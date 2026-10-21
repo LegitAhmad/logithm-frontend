@@ -1,106 +1,27 @@
-import { Component, EventEmitter, Output, signal, computed, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, inject, Output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CoursesService } from '../../services/courses.service';
+import { Course, CoursesService } from '../../services/courses.service';
 
-@Component({
-  selector: 'app-course-creation-modal',
-  standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './course-creation-modal.html',
-  styleUrl: './course-creation-modal.css',
-})
+@Component({ selector: 'app-course-creation-modal', imports: [FormsModule], templateUrl: './course-creation-modal.html', styleUrl: '../product-pages.css', host: {'(document:keydown.escape)':'onCancel()'} })
 export class CourseCreationModal {
-  private coursesService = inject(CoursesService);
-  
+  private readonly courses = inject(CoursesService);
   @Output() close = new EventEmitter<void>();
-  @Output() courseCreated = new EventEmitter<any>();
-  
-  courseName = signal('');
-  instructorName = signal('');
-  searchQuery = signal('');
-  startDate = signal('');
-  endDate = signal('');
-  selectedPeople = signal<any[]>([]);
-  
-  // Track the highlighted index for keyboard navigation
-  activeSelectionIndex = signal(0);
-
-  availableUsers = [
-    { email: 'nazeefulhaq@gmail.com', initial: 'N' },
-    { email: 'samyan@logithm.com', initial: 'S' },
-    { email: 'abdullah@logithm.com', initial: 'S' },
-    { email: 'anas@logithm.com', initial: 'S' },
-    { email: 'ahmed@logithm.com', initial: 'S' },
-    { email: 'affan@uet.edu.pk', initial: 'A' }
-  ];
-
-  filteredSuggestions = computed(() => {
-    const query = this.searchQuery().toLowerCase().trim();
-    if (!query) return [];
-    return this.availableUsers.filter(user => 
-      user.email.toLowerCase().includes(query) && 
-      !this.selectedPeople().some(p => p.email === user.email)
-    );
-  });
-
-  // Handle Keyboard Events: Up, Down, Enter, Backspace
-  handleKeyboard(event: KeyboardEvent) {
-    const suggestions = this.filteredSuggestions();
-    
-    if (event.key === 'ArrowDown') {
-      this.activeSelectionIndex.update(i => (i + 1) % suggestions.length);
-    } 
-    else if (event.key === 'ArrowUp') {
-      this.activeSelectionIndex.update(i => (i - 1 + suggestions.length) % suggestions.length);
-    } 
-    else if (event.key === 'Enter' && suggestions.length > 0) {
-      this.selectUser(suggestions[this.activeSelectionIndex()]);
-    } 
-    else if (event.key === 'Backspace' && this.searchQuery() === '' && this.selectedPeople().length > 0) {
-      // Deletes the last person if the input is empty
-      this.selectedPeople.update(prev => prev.slice(0, -1));
-    }
-  }
-
-  selectUser(user: any) {
-    this.selectedPeople.update(prev => [...prev, user]);
-    this.searchQuery.set('');
-    this.activeSelectionIndex.set(0);
-  }
-
-  removeUser(email: string) {
-    this.selectedPeople.update(prev => prev.filter(u => u.email !== email));
-  }
-
-  duration = computed(() => {
-    if (!this.startDate() || !this.endDate()) return '0 months';
-    const start = new Date(this.startDate());
-    const end = new Date(this.endDate());
-    const diff = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 30));
-    return `${diff} months`;
-  });
-
+  @Output() courseCreated = new EventEmitter<Course>();
+  courseName = '';
+  startDate = '';
+  endDate = '';
+  readonly saving = signal(false);
+  readonly error = signal('');
   onSubmit() {
-    if (!this.courseName().trim() || !this.startDate() || !this.endDate()) {
-      return;
+    if (this.saving()) return;
+    if (this.courseName.trim().length < 3 || !this.startDate || !this.endDate || this.endDate < this.startDate) {
+      this.error.set('Enter a course name of at least three characters and an end date on or after the start.'); return;
     }
-
-    this.coursesService.createCourse({
-      name: this.courseName(),
-      instructorName: this.instructorName(),
-      startDate: this.startDate(),
-      endDate: this.endDate()
-    }).subscribe({
-      next: (course) => {
-        this.courseCreated.emit(course);
-        this.close.emit();
-      },
-      error: (err) => {
-        console.error('Failed to create course', err);
-      }
+    this.saving.set(true); this.error.set('');
+    this.courses.createCourse({name:this.courseName.trim(),startDate:new Date(this.startDate).toISOString(),endDate:new Date(this.endDate).toISOString()}).subscribe({
+      next: course => { this.saving.set(false); this.courseCreated.emit(course); this.close.emit(); },
+      error: () => { this.error.set('Could not create the course. Check the details and try again.'); this.saving.set(false); },
     });
   }
-
-  onCancel() { this.close.emit(); }
+  onCancel() { if (!this.saving()) this.close.emit(); }
 }

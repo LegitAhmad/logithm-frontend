@@ -1,3 +1,11 @@
 input::placeholder {
   color: rgba(255, 255, 255, 0.45);
 }
+
+#profile p {
+  overflow-wrap: anywhere;
+}
+
+input {
+  min-width: 0;
+}
